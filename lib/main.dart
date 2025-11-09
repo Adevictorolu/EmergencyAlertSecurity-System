@@ -36,9 +36,6 @@ class DualertApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: "DUALERT",
-        darkTheme: ThemeData.dark(
-          useMaterial3: true
-        ),
         theme: ThemeData(
           fontFamily: 'Montserrat',
           scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
