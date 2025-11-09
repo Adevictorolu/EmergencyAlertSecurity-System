@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "6781619402",
+    "project_id": "avotek-4e8e3",
+    "storage_bucket": "avotek-4e8e3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6781619402:android:e6b8b86cb96a9b40283833",
+        "android_client_info": {
+          "package_name": "com.example.alert_system"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6781619402-mdnu94hoqt9dub8bi285nssu8gb33pep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLSaEsjAMpuVLN5E0wWXuP1XtXPnNEoyE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6781619402-mdnu94hoqt9dub8bi285nssu8gb33pep.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "6781619402-6teqfsq43n8970vpdugp2iiu33cb62qr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.alertSystem"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6781619402:android:ac021b6499966eb5283833",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_11"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6781619402-mdnu94hoqt9dub8bi285nssu8gb33pep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLSaEsjAMpuVLN5E0wWXuP1XtXPnNEoyE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6781619402-mdnu94hoqt9dub8bi285nssu8gb33pep.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "6781619402-6teqfsq43n8970vpdugp2iiu33cb62qr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.alertSystem"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
