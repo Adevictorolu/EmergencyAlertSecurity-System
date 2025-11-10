@@ -1,8 +1,8 @@
 
 
+import 'package:DUALERT/auth/auth_service.dart';
+import 'package:DUALERT/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_11/auth/auth_service.dart';
-import 'package:flutter_application_11/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 class StudentHome extends StatefulWidget {
