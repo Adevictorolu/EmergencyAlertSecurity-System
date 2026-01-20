@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:DUALERT/models/app_user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/app_user.dart';
+import 'package:flutter/material.dart';
 
 class UserProvider extends ChangeNotifier {
   AppUser? _user;
@@ -25,3 +25,4 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

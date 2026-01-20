@@ -11,7 +11,7 @@ import 'screens/student_home.dart';
 import 'screens/admin_home.dart';
 
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -38,7 +38,7 @@ class DualertApp extends StatelessWidget {
         title: "DUALERT",
         theme: ThemeData(
           fontFamily: 'Montserrat',
-          scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
+          scaffoldBackgroundColor: const Color.fromARGB(255, 56, 45, 45),
           colorScheme: ColorScheme.fromSwatch().copyWith(
             secondary: Colors.blueAccent,
           ),
@@ -70,43 +70,36 @@ class _AuthWrapperState extends State<AuthWrapper> {
   bool _started = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
+  Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
-    final userProv = Provider.of<UserProvider>(context, listen: false);
-
-    // Start listening only once
-    if (firebaseUser != null && !_started) {
-      userProv.start(firebaseUser.uid);
+    final userProvider = context.read<UserProvider>();
+    if (firebaseUser == null) {
+      if (_started) {
+        userProvider.stop(); 
+        _started = false;
+      }
+      return const SignInPage();
+    }
+    if (!_started) {
+      userProvider.start(firebaseUser.uid);
       _started = true;
     }
 
-    // Stop listening if signed out
-    if (firebaseUser == null && _started) {
-      userProv.stop();
-      _started = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final firebaseUser = context.watch<User?>();
-    final userProv = Provider.of<UserProvider>(context);
-
-    // Not signed in → SignInPage
-    if (firebaseUser == null) return const SignInPage();
-
-    // Still loading user data → show loading indicator
-    if (userProv.user == null) {
+    final appUser = context.watch<UserProvider>().user;
+    if (appUser == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // Navigate based on role
-    return userProv.user!.role == 'admin'
-        ? const AdminHome()
-        : const StudentHome();
+
+    switch (appUser.role) {
+      case 'admin':
+        return const AdminHome();
+      case 'student':
+        return const StudentHome();
+      default:
+        return const SignInPage();
+    }
   }
 }

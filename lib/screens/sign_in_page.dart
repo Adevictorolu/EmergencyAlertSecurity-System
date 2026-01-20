@@ -30,6 +30,7 @@ class _SignInPageState extends State<SignInPage> {
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'Montserrat',
                   color: Colors.blueAccent,
                 ),
               ),
@@ -39,7 +40,7 @@ class _SignInPageState extends State<SignInPage> {
                 decoration: InputDecoration(
                   hintText: 'Email',
                   filled: true,
-                  fillColor: Colors.white12,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -52,21 +53,18 @@ class _SignInPageState extends State<SignInPage> {
                 decoration: InputDecoration(
                   hintText: 'Password',
                   filled: true,
-                  fillColor: Colors.white12,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
               const SizedBox(height: 30),
-
-              /// ✅ ONLY sign in. Do NOT navigate here.
               InkWell(
                 onTap: loading ? null : () async {
                   setState(() => loading = true);
                   try {
                     await auth.signIn(emailC.text.trim(), passC.text.trim());
-                    // AuthWrapper will automatically detect active user and redirect correctly
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Error: $e")),

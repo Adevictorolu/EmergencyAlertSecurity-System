@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:location/location.dart';
 import 'package:uuid/uuid.dart';
-
 import '../models/app_user.dart';
 import '../models/alert_model.dart';
 
@@ -10,16 +10,12 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  // ✅ SIGN IN
   Future<UserCredential> signIn(String email, String password) async {
     return await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
-
-  // ✅ SIGN UP AS STUDENT
   Future<UserCredential> signUpAsStudent({
     required String fullName,
     required String email,
@@ -45,8 +41,6 @@ class AuthService {
     await _db.collection('users').doc(uid).set(appUser.toMap());
     return uc;
   }
-
-  // ✅ SIGN UP AS ADMIN
   Future<UserCredential> signUpAsAdmin({
     required String fullName,
     required String email,
@@ -72,39 +66,43 @@ class AuthService {
     await _db.collection('users').doc(uid).set(appUser.toMap());
     return uc;
   }
-
-  // ✅ SIGN OUT
   Future<void> signOut() async => _auth.signOut();
-
-  // ✅ CREATE ALERT
   Future<void> createAlert({
     required String uid,
     required String title,
     required String description,
   }) async {
+    final location = Location();
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) throw 'Location Service Disabled';
+    }
+
+    PermissionStatus permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        throw 'Location Permission Denied';
+      }
+    }
+    final locData = await location.getLocation();
+
     final id = const Uuid().v4();
 
-    // final alert = AlertModel(
-    //   id: id,
-    //   title: title,
-    //   description: description,
-    //   handled: false, // ✅ FIXED
-    //   createdAt: DateTime.now(),
-    //   senderUid: uid,
-    // );
     final alert = AlertModel(
       id: id,
       title: title,
       description: description,
       handled: false,
       createdAt: DateTime.now(),
-      senderUid: uid, // ✅ important
+      senderUid: uid,
+      lat: locData.latitude,
+      lng: locData.longitude,
     );
 
     await _db.collection('alerts').doc(id).set(alert.toMap());
   }
-
-  // ✅ HANDLE ALERT
   Future<void> handleAlert(String alertId, String adminUid) async {
     await _db.collection('alerts').doc(alertId).update({
       'handled': true,

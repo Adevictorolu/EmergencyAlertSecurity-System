@@ -27,12 +27,23 @@ class AdminHome extends StatelessWidget {
       body: FutureBuilder<QuerySnapshot>(
         future: FirebaseFirestore.instance.collection('alerts').get(),
         builder: (context, alertSnapshot) {
-          if (!alertSnapshot.hasData) {
+          if (alertSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          if (!alertSnapshot.hasData || alertSnapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No alerts yet.',
+                style: TextStyle(fontSize: 18),
+              ),
+            );
+          }
+
           final alerts = alertSnapshot.data!.docs;
 
           return ListView.builder(
+            padding: const EdgeInsets.all(10),
             itemCount: alerts.length,
             itemBuilder: (context, index) {
               final alertData = alerts[index].data() as Map<String, dynamic>;
@@ -51,22 +62,29 @@ class AdminHome extends StatelessWidget {
                   }
 
                   final senderData =
-                      senderSnapshot.data!.data() as Map<String, dynamic>? ??
-                      {};
+                      senderSnapshot.data!.data() as Map<String, dynamic>? ?? {};
 
                   return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
                     color: alert.handled ? Colors.green[900] : Colors.red[900],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       title: Text(
                         alert.title,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const SizedBox(height: 5),
                           Text(
                             alert.description,
                             style: const TextStyle(color: Colors.white70),
@@ -85,13 +103,27 @@ class AdminHome extends StatelessWidget {
                               "Phone: ${senderData['phone']}",
                               style: const TextStyle(color: Colors.white70),
                             ),
+                          if (alert.lat != null && alert.lng != null)
+                            Text(
+                              "Location: (${alert.lat}, ${alert.lng})",
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          const SizedBox(height: 5),
+                          Text(
+                            "Status: ${alert.handled ? "Handled" : "Pending"}",
+                            style: TextStyle(
+                                color: alert.handled
+                                    ? Colors.greenAccent
+                                    : Colors.yellowAccent,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                       trailing: alert.handled
                           ? const Icon(Icons.check, color: Colors.greenAccent)
                           : IconButton(
                               icon: const Icon(
-                                Icons.check,
+                                Icons.check_circle_outline,
                                 color: Colors.blueAccent,
                               ),
                               onPressed: () async {
@@ -100,6 +132,12 @@ class AdminHome extends StatelessWidget {
                                 await AuthService().handleAlert(
                                   alert.id,
                                   adminUid,
+                                );
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Alert marked as handled'),
+                                  ),
                                 );
                               },
                             ),
