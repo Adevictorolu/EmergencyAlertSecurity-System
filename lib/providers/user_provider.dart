@@ -1,4 +1,5 @@
-import 'package:DUALERT/models/app_user.dart';
+import 'dart:async';
+import 'package:dualert/models/app_user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -7,11 +8,13 @@ class UserProvider extends ChangeNotifier {
   AppUser? get user => _user;
 
   final _db = FirebaseFirestore.instance;
-  Stream<DocumentSnapshot<Map<String, dynamic>>>? _listener;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _subscription;
 
   void start(String uid) {
-    _listener = _db.collection('users').doc(uid).snapshots();
-    _listener!.listen((doc) {
+    // If listener is already active, ignore additional startup calls to prevent memory leaks.
+    if (_subscription != null) return;
+
+    _subscription = _db.collection('users').doc(uid).snapshots().listen((doc) {
       if (doc.exists && doc.data() != null) {
         _user = AppUser.fromMap(doc.data()!);
         notifyListeners();
@@ -20,9 +23,16 @@ class UserProvider extends ChangeNotifier {
   }
 
   void stop() {
-    _listener = null;
+    _subscription?.cancel();
+    _subscription = null;
     _user = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
 

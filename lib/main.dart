@@ -1,4 +1,4 @@
-import 'package:DUALERT/firebase_options.dart';
+import 'package:dualert/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -9,12 +9,11 @@ import 'screens/sign_in_page.dart';
 import 'screens/sign_up_page.dart';
 import 'screens/student_home.dart';
 import 'screens/admin_home.dart';
+import 'screens/view_alert_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const DualertApp());
 }
@@ -35,16 +34,28 @@ class DualertApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "DUALERT",
+        title: "DUalert",
         theme: ThemeData(
           fontFamily: 'Montserrat',
-          scaffoldBackgroundColor: const Color.fromARGB(255, 56, 45, 45),
-          colorScheme: ColorScheme.fromSwatch().copyWith(
-            secondary: Colors.blueAccent,
+          scaffoldBackgroundColor: const Color(
+            0xFFF5F7FA,
+          ), // Modern subtle background
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1E3C72),
+            primary: const Color(0xFF1E3C72),
+            secondary: const Color(0xFF2A5298),
           ),
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color.fromARGB(0, 255, 255, 255),
+            backgroundColor: Colors.transparent,
             elevation: 0,
+            iconTheme: IconThemeData(color: Colors.white),
+          ),
+          cardTheme: CardThemeData(
+            elevation: 8,
+            shadowColor: Colors.black.withOpacity(0.08),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
           ),
         ),
         routes: {
@@ -52,6 +63,8 @@ class DualertApp extends StatelessWidget {
           '/signup': (_) => const SignUpPage(),
           '/student': (_) => const StudentHome(),
           '/admin': (_) => const AdminHome(),
+          '/history': (_) =>
+              const ViewAlertPage(), // Fixed undefined route crash
         },
         home: const AuthWrapper(),
       ),
@@ -73,25 +86,35 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
     final userProvider = context.read<UserProvider>();
+
     if (firebaseUser == null) {
       if (_started) {
-        userProvider.stop(); 
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) userProvider.stop();
+        });
         _started = false;
       }
       return const SignInPage();
     }
+
     if (!_started) {
-      userProvider.start(firebaseUser.uid);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) userProvider.start(firebaseUser.uid);
+      });
       _started = true;
     }
 
     final appUser = context.watch<UserProvider>().user;
     if (appUser == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: Color(0xFFF5F7FA),
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+          ),
+        ),
       );
     }
-
 
     switch (appUser.role) {
       case 'admin':
