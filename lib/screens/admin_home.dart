@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -213,9 +214,35 @@ class AdminHome extends StatelessWidget {
                         if (senderData['phone'] != null)
                           _buildInfoRow(Icons.phone, senderData['phone']),
                         if (alert.lat != null && alert.lng != null)
-                          _buildInfoRow(
-                            Icons.location_on,
-                            '${alert.lat}, ${alert.lng}',
+                          InkWell(
+                            onTap: () async {
+                              final url = Uri.parse(
+                                  'https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 18, color: Color(0xFF1E3C72)),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Text(
+                                      'View on Map',
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E3C72),
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                       ],
                     ),

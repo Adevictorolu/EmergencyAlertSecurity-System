@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -187,7 +188,35 @@ class AlertHistoryPage extends StatelessWidget {
             const Divider(color: Color(0xFFE9ECEF), height: 1),
             const SizedBox(height: 12),
             if (alert.lat != null && alert.lng != null)
-              _buildInfoRow(Icons.location_on, '${alert.lat}, ${alert.lng}'),
+              InkWell(
+                onTap: () async {
+                    final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 16, color: Color(0xFF1E3C72)),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'View on Map',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E3C72),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             _buildInfoRow(Icons.fingerprint, 'ID: ${alert.senderUid}'),
           ],
         ),

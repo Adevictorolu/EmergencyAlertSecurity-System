@@ -76,14 +76,14 @@ class AuthService {
     bool serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
-      if (!serviceEnabled) throw 'Location Service Disabled';
+      if (!serviceEnabled) throw Exception('Location Service Disabled');
     }
 
     PermissionStatus permissionGranted = await location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
       if (permissionGranted != PermissionStatus.granted) {
-        throw 'Location Permission Denied';
+        throw Exception('Location Permission Denied');
       }
     }
     final locData = await location.getLocation();

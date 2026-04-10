@@ -1,4 +1,5 @@
 import 'package:dualert/auth/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:dualert/providers/user_provider.dart';
 import 'package:dualert/models/alert_model.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +23,6 @@ class _StudentHomeState extends State<StudentHome> {
   @override
   void initState() {
     super.initState();
-    final user = Provider.of<UserProvider>(context, listen: false).user;
-    final uid = user?.uid;
-    if (uid != null) {
-      Provider.of<UserProvider>(context, listen: false).start(uid);
-    }
   }
 
   @override
@@ -538,23 +534,35 @@ class _StudentHomeState extends State<StudentHome> {
                                     ],
                                   ),
                                   if (alert.lat != null && alert.lng != null)
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on,
-                                          size: 14,
-                                          color: Color(0xFFADB5BD),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          'Location Attached',
-                                          style: TextStyle(
-                                            fontFamily: 'Montserrat',
-                                            fontSize: 12,
-                                            color: Color(0xFFADB5BD),
+                                    InkWell(
+                                      onTap: () async {
+                                        final url = Uri.parse(
+                                            'https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(url,
+                                              mode: LaunchMode.externalApplication);
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on,
+                                            size: 14,
+                                            color: Color(0xFF1E3C72),
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            'View on Map',
+                                            style: TextStyle(
+                                              fontFamily: 'Montserrat',
+                                              fontSize: 12,
+                                              color: Color(0xFF1E3C72),
+                                              fontWeight: FontWeight.bold,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                 ],
                               ),

@@ -28,12 +28,12 @@ class AppUser {
 
   factory AppUser.fromMap(Map<String, dynamic> map) {
     return AppUser(
-      uid: map['uid'],
-      fullName: map['fullName'],
-      email: map['email'],
-      matricNo: map['matricNo'],
-      phone: map['phone'],
-      role: map['role'] ?? 'student',
+      uid: map['uid']?.toString() ?? '',
+      fullName: map['fullName']?.toString() ?? 'Unknown',
+      email: map['email']?.toString() ?? '',
+      matricNo: map['matricNo']?.toString(),
+      phone: map['phone']?.toString(),
+      role: map['role']?.toString() ?? 'student',
     );
   }
 }
