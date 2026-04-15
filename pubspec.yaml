@@ -31,6 +31,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  #   To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/imgs/1.png
+    - assets/imgs/2.png
+    - assets/imgs/3.png
+    - assets/imgs/DUALERT BRAND copy.jpg
+
   fonts:
     - family: Montserrat
       fonts:
