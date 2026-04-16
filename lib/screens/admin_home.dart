@@ -1,81 +1,66 @@
+import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../auth/auth_service.dart';
-import '../providers/user_provider.dart';
 import '../models/alert_model.dart';
+import '../utils/app_colors.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthService>(context, listen: false);
-    final _ = Provider.of<UserProvider>(context).user!;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Modern subtle background
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('Admin Dashboard'), 
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () async => await auth.signOut(),
+        backgroundColor: Colors.white.withOpacity(0.4),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
           ),
-        ],
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('alerts')
-            .snapshots(), // Switched to StreamBuilder for real-time dashboard updates!
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
         builder: (context, alertSnapshot) {
           if (alertSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.primaryBlue,
+                ),
               ),
             );
           }
 
           if (!alertSnapshot.hasData || alertSnapshot.data!.docs.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.notifications_off_outlined,
                     size: 64,
-                    color: Colors.grey[400],
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'No alerts yet',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 20,
-                      color: Colors.grey,
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -93,31 +78,37 @@ class AdminHome extends StatelessWidget {
               final alertData = alerts[index].data() as Map<String, dynamic>;
               final alert = AlertModel.fromMap(alertData);
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(alert.senderUid)
-                    .get(),
-                builder: (context, senderSnapshot) {
-                  Map<String, dynamic> senderData = {};
-                  bool isLoadingSender = true;
+              Widget content;
+              if (alert.senderUid.isEmpty) {
+                content = _buildAlertCard(context, alert, {}, false);
+              } else {
+                content = FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(alert.senderUid)
+                      .get(),
+                  builder: (context, senderSnapshot) {
+                    Map<String, dynamic> senderData = {};
+                    bool isLoadingSender = true;
 
-                  if (senderSnapshot.connectionState == ConnectionState.done &&
-                      senderSnapshot.hasData) {
-                    senderData =
-                        senderSnapshot.data!.data() as Map<String, dynamic>? ??
-                        {};
-                    isLoadingSender = false;
-                  }
+                    if (senderSnapshot.connectionState == ConnectionState.done &&
+                        senderSnapshot.hasData) {
+                      senderData =
+                          senderSnapshot.data!.data() as Map<String, dynamic>? ??
+                          {};
+                      isLoadingSender = false;
+                    }
 
-                  return _buildAlertCard(
-                    context,
-                    alert,
-                    senderData,
-                    isLoadingSender,
-                  );
-                },
-              );
+                    return _buildAlertCard(
+                      context,
+                      alert,
+                      senderData,
+                      isLoadingSender,
+                    );
+                  },
+                );
+              }
+              return content;
             },
           );
         },
@@ -131,12 +122,15 @@ class AdminHome extends StatelessWidget {
     Map<String, dynamic> senderData,
     bool isLoadingSender,
   ) {
+    String formattedTime = 'Unknown Time';
+    try {
+      formattedTime = DateFormat(
+        'MMM d, yyyy • h:mm a',
+      ).format(alert.createdAt);
+    } catch (_) {}
+
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
-      elevation: 8,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -152,12 +146,22 @@ class AdminHome extends StatelessWidget {
                       fontFamily: 'Montserrat',
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF2C3E50),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
                 _buildStatusChip(alert.handled),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              formattedTime,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -165,7 +169,7 @@ class AdminHome extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Montserrat',
                 fontSize: 15,
-                color: Color(0xFF7F8C8D),
+                color: AppColors.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -176,7 +180,7 @@ class AdminHome extends StatelessWidget {
                 fontFamily: 'Montserrat',
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFADB5BD),
+                color: AppColors.textSecondary,
                 letterSpacing: 1.2,
               ),
             ),
@@ -184,9 +188,9 @@ class AdminHome extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE9ECEF)),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
               ),
               child: isLoadingSender
                   ? const Center(
@@ -211,31 +215,72 @@ class AdminHome extends StatelessWidget {
                           Icons.email,
                           senderData['email'] ?? 'N/A',
                         ),
-                        if (senderData['phone'] != null)
-                          _buildInfoRow(Icons.phone, senderData['phone']),
-                        if (alert.lat != null && alert.lng != null)
+                        if (senderData['matricNo'] != null && senderData['matricNo'].toString().isNotEmpty)
+                          _buildInfoRow(
+                            Icons.badge,
+                            senderData['matricNo'],
+                          ),
+                        if (senderData['phone'] != null && senderData['phone'].toString().isNotEmpty)
                           InkWell(
                             onTap: () async {
-                              final url = Uri.parse(
-                                  'https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              final telUrl = Uri.parse('tel:${senderData['phone']}');
+                              if (await canLaunchUrl(telUrl)) {
+                                await launchUrl(telUrl);
                               }
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.location_on, size: 18, color: Color(0xFF1E3C72)),
+                                  const Icon(Icons.phone, size: 18, color: AppColors.primaryBlue),
                                   const SizedBox(width: 12),
-                                  const Expanded(
+                                  Expanded(
+                                    child: Text(
+                                      '${senderData['phone']} (Tap to call)',
+                                      style: const TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryBlue,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (alert.lat != null && alert.lng != null)
+                          InkWell(
+                            onTap: () async {
+                              final url = Uri.parse(
+                                'https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}',
+                              );
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(
+                                  url,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 18,
+                                    color: AppColors.primaryBlue,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
                                     child: Text(
                                       'View on Map',
                                       style: TextStyle(
                                         fontFamily: 'Montserrat',
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E3C72),
+                                        color: AppColors.primaryBlue,
                                         decoration: TextDecoration.underline,
                                       ),
                                     ),
@@ -251,47 +296,55 @@ class AdminHome extends StatelessWidget {
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
+                height: 56,
                 child: ElevatedButton.icon(
                   icon: const Icon(
                     Icons.check_circle_outline,
-                    color: Colors.white,
+                    color: AppColors.textLight,
                   ),
                   label: const Text(
                     'Mark as Handled',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3C72),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 4,
-                    shadowColor: const Color(0xFF1E3C72).withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
                   onPressed: () async {
-                    final adminUid = FirebaseAuth.instance.currentUser!.uid;
-                    await AuthService().handleAlert(alert.id, adminUid);
+                    try {
+                      final adminUid = FirebaseAuth.instance.currentUser!.uid;
+                      await AuthService().handleAlert(alert.id, adminUid);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Alert marked as handled',
-                          style: TextStyle(fontFamily: 'Montserrat'),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        backgroundColor: Colors.green[700],
-                      ),
-                    );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Alert marked as handled',
+                              style: TextStyle(fontFamily: 'Montserrat'),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Error: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               ),
@@ -307,11 +360,11 @@ class AdminHome extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: handled
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+            ? AppColors.success.withOpacity(0.1)
+            : AppColors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: handled ? Colors.green : Colors.orange,
+          color: handled ? AppColors.success : AppColors.warning,
           width: 1,
         ),
       ),
@@ -321,14 +374,14 @@ class AdminHome extends StatelessWidget {
           Icon(
             handled ? Icons.check_circle : Icons.pending,
             size: 16,
-            color: handled ? Colors.green : Colors.orange,
+            color: handled ? AppColors.success : AppColors.warning,
           ),
           const SizedBox(width: 6),
           Text(
             handled ? "Handled" : "Pending",
             style: TextStyle(
               fontFamily: 'Montserrat',
-              color: handled ? Colors.green : Colors.orange,
+              color: handled ? AppColors.success : AppColors.warning,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -343,7 +396,7 @@ class AdminHome extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: const Color(0xFFADB5BD)),
+          Icon(icon, size: 18, color: AppColors.textSecondary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -352,9 +405,7 @@ class AdminHome extends StatelessWidget {
                 fontFamily: 'Montserrat',
                 fontSize: 14,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: isBold
-                    ? const Color(0xFF495057)
-                    : const Color(0xFF6C757D),
+                color: isBold ? AppColors.textPrimary : AppColors.textSecondary,
               ),
             ),
           ),

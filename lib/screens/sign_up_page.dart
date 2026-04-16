@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../auth/auth_service.dart';
+import '../utils/app_colors.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -59,22 +60,30 @@ class _SignUpPageState extends State<SignUpPage> {
         );
       }
       if (mounted) {
-        Navigator.pop(
-          context,
-        ); // Optional: successfully signed up, back to sign in
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Successfully created account. A verification email was sent!',
+              style: TextStyle(fontFamily: 'Montserrat'),
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Error: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}",
+              e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim(),
               style: const TextStyle(
                 fontFamily: 'Montserrat',
-                color: Colors.white,
+                color: AppColors.textLight,
               ),
             ),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -105,16 +114,12 @@ class _SignUpPageState extends State<SignUpPage> {
         style: const TextStyle(fontFamily: 'Montserrat'),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(
-            fontFamily: 'Montserrat',
-            color: Color(0xFFADB5BD),
-          ),
-          prefixIcon: Icon(icon, color: const Color(0xFFADB5BD)),
+          prefixIcon: Icon(icon),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: const Color(0xFFADB5BD),
+                    color: AppColors.textSecondary,
                   ),
                   onPressed: () {
                     setState(() {
@@ -123,15 +128,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   },
                 )
               : null,
-          filled: true,
-          fillColor: const Color(0xFFF8F9FA),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFF1E3C72), width: 1.5),
+            borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
           ),
         ),
         validator: (value) =>
@@ -143,32 +142,13 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Modern subtle background
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Create Account',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('Create Account'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         child: Column(
           children: [
             Card(
@@ -177,7 +157,6 @@ class _SignUpPageState extends State<SignUpPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Form(
@@ -205,17 +184,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.background),
                         ),
                         child: SwitchListTile(
-                          activeColor: const Color(0xFF1E3C72),
+                          activeColor: AppColors.primaryBlue,
                           title: const Text(
                             'Sign up as Admin',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF495057),
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           value: isAdmin,
@@ -251,52 +231,34 @@ class _SignUpPageState extends State<SignUpPage> {
 
                       SizedBox(
                         width: double.infinity,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: loading ? null : _signUp,
+                          style: ElevatedButton.styleFrom(
+                            elevation: 4,
+                            shadowColor: AppColors.primaryBlue.withOpacity(0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF1E3C72).withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
                           ),
-                          child: ElevatedButton(
-                            onPressed: loading ? null : _signUp,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: loading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Sign Up',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 1,
-                                    ),
+                          child: loading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.textLight,
+                                    strokeWidth: 3,
                                   ),
-                          ),
+                                )
+                              : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -313,7 +275,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   "Already have an account? ",
                   style: TextStyle(
                     fontFamily: 'Montserrat',
-                    color: Color(0xFF7F8C8D),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 InkWell(
@@ -322,7 +284,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     'Sign In',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      color: Color(0xFF1E3C72),
+                      color: AppColors.primaryBlue,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/user_provider.dart';
 import '../models/alert_model.dart';
+import '../utils/app_colors.dart';
 
 class ViewAlertPage extends StatelessWidget {
   const ViewAlertPage({super.key});
@@ -16,54 +18,40 @@ class ViewAlertPage extends StatelessWidget {
 
     if (user == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF5F7FA),
+        backgroundColor: AppColors.background,
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
           ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Modern subtle background
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'My Alerts',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('General Alert History'),
         centerTitle: true,
+        backgroundColor: Colors.white.withOpacity(0.4),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('alerts')
-            .where(
-              'senderUid',
-              isEqualTo: user.uid,
-            ) // Fixed bug: 'uid' -> 'senderUid'
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
               ),
             );
           }
@@ -74,25 +62,25 @@ class ViewAlertPage extends StatelessWidget {
                 'Error loading alerts.',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  color: Colors.black54,
+                  color: AppColors.textSecondary,
                 ),
               ),
             );
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  const Text(
+                  Icon(Icons.inbox_outlined, size: 64, color: AppColors.textSecondary),
+                  SizedBox(height: 16),
+                  Text(
                     'No alerts submitted yet.',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 18,
-                      color: Colors.grey,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -111,19 +99,11 @@ class ViewAlertPage extends StatelessWidget {
 
               String formattedTime = 'Unknown Time';
               try {
-                formattedTime = DateFormat(
-                  'MMM d, yyyy • h:mm a',
-                ).format(alert.createdAt);
+                formattedTime = DateFormat('MMM d, yyyy • h:mm a').format(alert.createdAt);
               } catch (_) {}
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
-                elevation: 6,
-                shadowColor: Colors.black.withOpacity(0.08),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                color: Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -140,7 +120,7 @@ class ViewAlertPage extends StatelessWidget {
                                 fontFamily: 'Montserrat',
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF2C3E50),
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -154,7 +134,7 @@ class ViewAlertPage extends StatelessWidget {
                           fontFamily: 'Montserrat',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFFADB5BD),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -163,13 +143,13 @@ class ViewAlertPage extends StatelessWidget {
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 14,
-                          color: Color(0xFF7F8C8D),
+                          color: AppColors.textSecondary,
                           height: 1.4,
                         ),
                       ),
                       if (alert.lat != null && alert.lng != null) ...[
                         const SizedBox(height: 16),
-                        const Divider(color: Color(0xFFE9ECEF), height: 1),
+                        const Divider(color: AppColors.background, height: 1),
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: () async {
@@ -183,17 +163,17 @@ class ViewAlertPage extends StatelessWidget {
                               const Icon(
                                 Icons.location_on,
                                 size: 16,
-                                color: Color(0xFF1E3C72),
+                                color: AppColors.primaryBlue,
                               ),
                               const SizedBox(width: 8),
-                              Expanded(
+                              const Expanded(
                                 child: Text(
                                   'View on Map',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Montserrat',
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3C72),
+                                    color: AppColors.primaryBlue,
                                     decoration: TextDecoration.underline,
                                   ),
                                 ),
@@ -218,11 +198,11 @@ class ViewAlertPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: handled
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+            ? AppColors.success.withOpacity(0.1)
+            : AppColors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: handled ? Colors.green : Colors.orange,
+          color: handled ? AppColors.success : AppColors.warning,
           width: 1,
         ),
       ),
@@ -232,14 +212,14 @@ class ViewAlertPage extends StatelessWidget {
           Icon(
             handled ? Icons.check_circle : Icons.pending,
             size: 14,
-            color: handled ? Colors.green : Colors.orange,
+            color: handled ? AppColors.success : AppColors.warning,
           ),
           const SizedBox(width: 4),
           Text(
             handled ? "Handled" : "Pending",
             style: TextStyle(
               fontFamily: 'Montserrat',
-              color: handled ? Colors.green : Colors.orange,
+              color: handled ? AppColors.success : AppColors.warning,
               fontWeight: FontWeight.bold,
               fontSize: 11,
             ),

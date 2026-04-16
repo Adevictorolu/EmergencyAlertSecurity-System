@@ -3,23 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth/auth_service.dart';
 import 'providers/user_provider.dart';
 import 'screens/sign_in_page.dart';
 import 'screens/sign_up_page.dart';
-import 'screens/student_home.dart';
 import 'screens/admin_home.dart';
+import 'screens/student_home.dart';
 import 'screens/view_alert_page.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/analytics_page.dart';
+import 'utils/app_colors.dart';
+import 'utils/app_theme.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(const DualertApp());
+  final prefs = await SharedPreferences.getInstance();
+  final bool seenOnboarding = prefs.getBool('seen_onboarding') ?? false;
+
+  runApp(DualertApp(seenOnboarding: seenOnboarding));
 }
 
 class DualertApp extends StatelessWidget {
-  const DualertApp({super.key});
+  final bool seenOnboarding;
+
+  const DualertApp({super.key, required this.seenOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -31,42 +42,27 @@ class DualertApp extends StatelessWidget {
           initialData: null,
         ),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+        ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "DUalert",
-        theme: ThemeData(
-          fontFamily: 'Montserrat',
-          scaffoldBackgroundColor: const Color(
-            0xFFF5F7FA,
-          ), // Modern subtle background
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1E3C72),
-            primary: const Color(0xFF1E3C72),
-            secondary: const Color(0xFF2A5298),
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: IconThemeData(color: Colors.white),
-          ),
-          cardTheme: CardThemeData(
-            elevation: 8,
-            shadowColor: Colors.black.withOpacity(0.08),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-        ),
-        routes: {
-          '/signin': (_) => const SignInPage(),
-          '/signup': (_) => const SignUpPage(),
-          '/student': (_) => const StudentHome(),
-          '/admin': (_) => const AdminHome(),
-          '/history': (_) =>
-              const ViewAlertPage(), // Fixed undefined route crash
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "DUalert",
+            themeMode: themeProvider.themeMode,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            routes: {
+              '/signin': (_) => const SignInPage(),
+              '/signup': (_) => const SignUpPage(),
+              '/student': (_) => const StudentHome(), // Maps to "Report Emergency"
+              '/admin': (_) => const AdminHome(),
+              '/history': (_) => const ViewAlertPage(),
+              '/analytics': (_) => const AnalyticsPage(),
+            },
+            home: seenOnboarding ? const AuthWrapper() : const OnboardingScreen(),
+          );
         },
-        home: const AuthWrapper(),
       ),
     );
   }
@@ -107,22 +103,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final appUser = context.watch<UserProvider>().user;
     if (appUser == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF5F7FA),
+        backgroundColor: AppColors.background,
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
           ),
         ),
       );
     }
 
-    switch (appUser.role) {
-      case 'admin':
-        return const AdminHome();
-      case 'student':
-        return const StudentHome();
-      default:
-        return const SignInPage();
+    if (appUser.role == 'admin') {
+      return const AdminHome();
     }
+    return const StudentHome();
   }
 }

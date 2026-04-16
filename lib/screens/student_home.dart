@@ -1,11 +1,11 @@
-import 'package:dualert/auth/auth_service.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:dualert/providers/user_provider.dart';
-import 'package:dualert/models/alert_model.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+import 'package:dualert/auth/auth_service.dart';
+import 'package:dualert/providers/user_provider.dart';
+import '../utils/app_colors.dart';
+import 'admin_home.dart';
+import 'view_alert_page.dart';
 
 class StudentHome extends StatefulWidget {
   const StudentHome({super.key});
@@ -21,15 +21,38 @@ class _StudentHomeState extends State<StudentHome> {
   bool emergencyLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     titleC.dispose();
     descC.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message.replaceAll(RegExp(r'\[.*?\]'), '').trim(),
+          style: const TextStyle(fontFamily: 'Montserrat', color: AppColors.textLight),
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Montserrat', color: AppColors.textLight, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _triggerSOS(AuthService auth, String uid) async {
@@ -37,31 +60,12 @@ class _StudentHomeState extends State<StudentHome> {
     try {
       await auth.createAlert(
         uid: uid,
-        title: 'EMERGENCY',
+        title: 'EMERGENCY SOS',
         description: 'Immediate help needed! SOS triggered remotely.',
       );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Emergency alert sent!',
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      _showSuccess('Emergency alert sent!');
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      _showError(e.toString());
     } finally {
       if (mounted) setState(() => emergencyLoading = false);
     }
@@ -69,15 +73,7 @@ class _StudentHomeState extends State<StudentHome> {
 
   Future<void> _submitCustomAlert(AuthService auth, String uid) async {
     if (titleC.text.trim().isEmpty || descC.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a title and description.',
-            style: TextStyle(fontFamily: 'Montserrat'),
-          ),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showError('Please enter a title and description.');
       return;
     }
 
@@ -92,27 +88,9 @@ class _StudentHomeState extends State<StudentHome> {
       descC.clear();
       if (!mounted) return;
       FocusScope.of(context).unfocus();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Alert submitted successfully!',
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      _showSuccess('Alert submitted successfully!');
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      _showError(e.toString());
     } finally {
       if (mounted) setState(() => customLoading = false);
     }
@@ -126,489 +104,305 @@ class _StudentHomeState extends State<StudentHome> {
 
     if (user == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF5F7FA),
+        backgroundColor: AppColors.background,
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3C72)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
           ),
         ),
       );
     }
 
+    final isAdmin = user.role == 'admin';
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Modern subtle background
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        title: const Text('Report Emergency'),
+        centerTitle: false,
+        backgroundColor: Colors.white.withOpacity(0.4),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
           ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Student Dashboard',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              user.email,
-              style: const TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.normal,
-                fontSize: 12,
-                color: Colors.white70,
-              ),
-            ),
-          ],
         ),
         actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              tooltip: 'Admin Dashboard',
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/admin');
+              },
+            ),
           IconButton(
-            icon: const Icon(Icons.history, color: Colors.white),
-            tooltip: 'View Alert History',
-            onPressed: () {
-              // Assuming route is defined, otherwise handled in navbar
-              Navigator.pushNamed(context, '/history');
-            },
+            icon: const Icon(Icons.analytics_outlined),
+            tooltip: 'System Analytics',
+            onPressed: () => Navigator.pushNamed(context, '/analytics'),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.history),
+            tooltip: 'General Alert History',
+            onPressed: () => Navigator.pushNamed(context, '/history'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () async => await auth.signOut(),
           ),
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Top Section (Actions)
-            Expanded(
-              flex: 5,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                child: Column(
-                  children: [
-                    // SOS Button
-                    GestureDetector(
-                      onTap: emergencyLoading
-                          ? null
-                          : () => _triggerSOS(auth, user.uid),
-                      child: Container(
-                        height: 140,
-                        width: 140,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF4B2B),
-                              Color(0xFFFF416C),
-                            ], // Vibrant red UI
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF4B2B).withOpacity(0.5),
-                              blurRadius: 24,
-                              spreadRadius: 8,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                            width: 2,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: emergencyLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 4,
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.warning_rounded,
-                                    color: Colors.white,
-                                    size: 40,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'SOS',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 32,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Custom Alert Form Card
-                    Card(
-                      elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.08),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Custom Alert',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3C72),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: titleC,
-                              style: const TextStyle(fontFamily: 'Montserrat'),
-                              decoration: InputDecoration(
-                                hintText: 'Short Title (e.g. Fire, Medical)',
-                                hintStyle: const TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  color: Color(0xFFADB5BD),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8F9FA),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: descC,
-                              maxLines: 2,
-                              style: const TextStyle(fontFamily: 'Montserrat'),
-                              decoration: InputDecoration(
-                                hintText: 'Detailed Description',
-                                hintStyle: const TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  color: Color(0xFFADB5BD),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8F9FA),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: customLoading
-                                    ? null
-                                    : () => _submitCustomAlert(auth, user.uid),
-                                icon: const Icon(
-                                  Icons.send_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                label: customLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Submit Alert',
-                                        style: TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  backgroundColor: const Color(0xFF1E3C72),
-                                  elevation: 4,
-                                  shadowColor: const Color(
-                                    0xFF1E3C72,
-                                  ).withOpacity(0.4),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom Section (Recent History Title)
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Recent Alerts',
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Are you in immediate danger?',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF2C3E50),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
-            ),
-
-            // Bottom Section (List)
-            Expanded(
-              flex: 4,
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('alerts')
-                    .where('senderUid', isEqualTo: user.uid)
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF1E3C72),
-                        ),
-                      ),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text(
-                        'Error loading alerts.',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          color: Colors.black54,
-                        ),
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.inbox_outlined,
-                            size: 48,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'No alerts sent yet.',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  final docs = snapshot.data!.docs;
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    itemCount: docs.length,
-                    itemBuilder: (context, index) {
-                      final data = docs[index].data()! as Map<String, dynamic>;
-                      final alert = AlertModel.fromMap(data);
-
-                      String formattedTime = 'Unknown';
-                      try {
-                        formattedTime = DateFormat(
-                          'MMM d, h:mm a',
-                        ).format(alert.createdAt);
-                      } catch (_) {}
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 2,
-                        shadowColor: Colors.black.withOpacity(0.05),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        color: Colors.white,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      alert.title,
-                                      style: const TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2C3E50),
-                                      ),
-                                    ),
-                                  ),
-                                  _buildStatusChip(alert.handled),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                alert.description,
-                                style: const TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 13,
-                                  color: Color(0xFF7F8C8D),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.access_time,
-                                        size: 14,
-                                        color: Color(0xFFADB5BD),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        formattedTime,
-                                        style: const TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontSize: 12,
-                                          color: Color(0xFFADB5BD),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (alert.lat != null && alert.lng != null)
-                                    InkWell(
-                                      onTap: () async {
-                                        final url = Uri.parse(
-                                            'https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
-                                        if (await canLaunchUrl(url)) {
-                                          await launchUrl(url,
-                                              mode: LaunchMode.externalApplication);
-                                        }
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.location_on,
-                                            size: 14,
-                                            color: Color(0xFF1E3C72),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'View on Map',
-                                            style: TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontSize: 12,
-                                              color: Color(0xFF1E3C72),
-                                              fontWeight: FontWeight.bold,
-                                              decoration: TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+              const SizedBox(height: 8),
+              const Text(
+                'Tap the SOS button to instantly alert security with your current location.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 30),
+
+              // SOS Button
+              GestureDetector(
+                onTap: emergencyLoading ? null : () => _triggerSOS(auth, user.uid),
+                child: Container(
+                  height: 160,
+                  width: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.error,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.error.withOpacity(0.4),
+                        blurRadius: 30,
+                        spreadRadius: 10,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 4,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: emergencyLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 4,
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.warning_rounded, color: Colors.white, size: 48),
+                            SizedBox(height: 8),
+                            Text(
+                              'SOS',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 36,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 50),
+              const Divider(color: AppColors.textSecondary, thickness: 0.2),
+              const SizedBox(height: 30),
+
+              // Quick Alerts
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Quick Alerts',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildQuickBox(auth, user.uid, 'Fire', Icons.local_fire_department, Colors.orange),
+                  _buildQuickBox(auth, user.uid, 'Medical', Icons.medical_services, Colors.blue),
+                  _buildQuickBox(auth, user.uid, 'Security', Icons.security, Colors.green),
+                  _buildQuickBox(auth, user.uid, 'Other', Icons.more_horiz, Colors.purple),
+                ],
+              ),
+              
+              const SizedBox(height: 30),
+              const Divider(color: AppColors.textSecondary, thickness: 0.2),
+              const SizedBox(height: 30),
+
+              // Custom Alert Form
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Report a specific incident',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: titleC,
+                        style: const TextStyle(fontFamily: 'Montserrat'),
+                        decoration: InputDecoration(
+                          hintText: 'Emergency Type (e.g. Fire, Medical)',
+                          prefixIcon: const Icon(Icons.title, color: AppColors.textSecondary),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descC,
+                        maxLines: 3,
+                        style: const TextStyle(fontFamily: 'Montserrat'),
+                        decoration: InputDecoration(
+                          hintText: 'Describe the situation and location...',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: customLoading ? null : () => _submitCustomAlert(auth, user.uid),
+                          icon: customLoading ? const SizedBox() : const Icon(Icons.send_rounded, size: 20),
+                          label: customLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                                )
+                              : const Text(
+                                  'Submit Alert',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusChip(bool handled) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: handled
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            handled ? Icons.check_circle : Icons.pending,
-            size: 12,
-            color: handled ? Colors.green : Colors.orange,
+  Widget _buildQuickBox(AuthService auth, String uid, String type, IconData icon, Color color) {
+    return GestureDetector(
+      onTap: () async {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Trigger $type Alert?'),
+            content: Text('This will instantly notify everyone about a $type emergency.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                onPressed: () => Navigator.pop(context, true), 
+                child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          Text(
-            handled ? "Handled" : "Pending",
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              color: handled ? Colors.green : Colors.orange,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
+        );
+        if (confirm == true) {
+          try {
+            await auth.createAlert(
+              uid: uid,
+              title: type,
+              description: 'Immediate $type emergency reported.',
+            );
+            _showSuccess('$type alert sent!');
+          } catch (e) {
+            _showError(e.toString());
+          }
+        }
+      },
+      child: Container(
+        width: 70,
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              type,
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
