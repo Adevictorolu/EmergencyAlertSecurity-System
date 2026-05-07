@@ -57,6 +57,7 @@ class AuthService {
     required String password,
     String? matricNo,
     String? phone,
+    String? voicePath,
   }) async {
     try {
       final uc = await _auth.createUserWithEmailAndPassword(
@@ -65,6 +66,12 @@ class AuthService {
       );
       final uid = uc.user!.uid;
 
+      DateTime? voiceRecordedAt;
+
+      if (voicePath != null && voicePath.isNotEmpty) {
+        voiceRecordedAt = DateTime.now();
+      }
+
       final appUser = AppUser(
         uid: uid,
         fullName: fullName,
@@ -72,6 +79,9 @@ class AuthService {
         role: 'student',
         matricNo: matricNo,
         phone: phone,
+        voiceUrl: voicePath,
+        emailVerified: false,
+        voiceRecordedAt: voiceRecordedAt,
       );
 
       await _db.collection('users').doc(uid).set(appUser.toMap());
@@ -131,10 +141,13 @@ class AuthService {
 
   Future<void> signOut() async => _auth.signOut();
 
+
+
   Future<void> createAlert({
     required String uid,
     required String title,
     required String description,
+    String? voicePath,
   }) async {
     try {
       final location = Location();
@@ -160,6 +173,12 @@ class AuthService {
         print("Warning: Could not get exact location: $e");
       }
 
+      DateTime? voiceRecordedAt;
+
+      if (voicePath != null && voicePath.isNotEmpty) {
+        voiceRecordedAt = DateTime.now();
+      }
+
       final id = const Uuid().v4();
 
       final alert = AlertModel(
@@ -171,6 +190,8 @@ class AuthService {
         senderUid: uid,
         lat: locData?.latitude,
         lng: locData?.longitude,
+        voiceUrl: voicePath,
+        voiceRecordedAt: voiceRecordedAt,
       );
 
       await _db.collection('alerts').doc(id).set(alert.toMap());

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../auth/auth_service.dart';
 import '../models/alert_model.dart';
 import '../utils/app_colors.dart';
+import '../widgets/voice_player_widget.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});
@@ -292,6 +293,37 @@ class AdminHome extends StatelessWidget {
                       ],
                     ),
             ),
+            if (alert.voiceUrl != null && alert.voiceUrl!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Text(
+                "VOICE MESSAGE",
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              VoicePlayerWidget(
+                voiceUrl: alert.voiceUrl,
+                userName: senderData['fullName'] ?? 'User',
+              ),
+              if (alert.voiceRecordedAt != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Recorded: ${DateFormat('MMM d, yyyy • h:mm a').format(alert.voiceRecordedAt!)}',
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
             if (!alert.handled) ...[
               const SizedBox(height: 20),
               SizedBox(

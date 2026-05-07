@@ -10,6 +10,9 @@ class AlertModel {
   final String? handledBy;
   final double? lat;
   final double? lng;
+  final String? voiceUrl;
+  final DateTime? voiceRecordedAt;
+  final String? address;
 
   AlertModel({
     required this.id,
@@ -21,6 +24,9 @@ class AlertModel {
     this.handledBy,
     this.lat,
     this.lng,
+    this.voiceUrl,
+    this.voiceRecordedAt,
+    this.address,
   });
 
   factory AlertModel.fromMap(Map<String, dynamic> map) {
@@ -34,6 +40,15 @@ class AlertModel {
       }
     }
 
+    DateTime? voiceRecordedAt;
+    if (map['voiceRecordedAt'] != null) {
+      if (map['voiceRecordedAt'] is Timestamp) {
+        voiceRecordedAt = (map['voiceRecordedAt'] as Timestamp).toDate();
+      } else if (map['voiceRecordedAt'] is String) {
+        voiceRecordedAt = DateTime.tryParse(map['voiceRecordedAt']);
+      }
+    }
+
     return AlertModel(
       id: map['id']?.toString() ?? '',
       title: map['title']?.toString() ?? '',
@@ -44,6 +59,9 @@ class AlertModel {
       lat: map['lat'] != null ? (map['lat'] as num).toDouble() : null,
       lng: map['lng'] != null ? (map['lng'] as num).toDouble() : null,
       createdAt: parsedCreatedAt,
+      voiceUrl: map['voiceUrl']?.toString(),
+      voiceRecordedAt: voiceRecordedAt,
+      address: map['address']?.toString(),
     );
   }
 
@@ -58,6 +76,9 @@ class AlertModel {
       'lat': lat,
       'lng': lng,
       'createdAt': Timestamp.fromDate(createdAt),
+      'voiceUrl': voiceUrl,
+      'voiceRecordedAt': voiceRecordedAt != null ? Timestamp.fromDate(voiceRecordedAt!) : null,
+      'address': address,
     };
   }
 
@@ -71,6 +92,9 @@ class AlertModel {
     String? handledBy,
     double? lat,
     double? lng,
+    String? voiceUrl,
+    DateTime? voiceRecordedAt,
+    String? address,
   }) {
     return AlertModel(
       id: id ?? this.id,
@@ -82,6 +106,9 @@ class AlertModel {
       handledBy: handledBy ?? this.handledBy,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
+      voiceUrl: voiceUrl ?? this.voiceUrl,
+      voiceRecordedAt: voiceRecordedAt ?? this.voiceRecordedAt,
+      address: address ?? this.address,
     );
   }
 }

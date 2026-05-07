@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../auth/auth_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/voice_recorder_widget.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -22,6 +23,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isAdmin = false;
   bool loading = false;
   bool _obscureText = true;
+  String? _voicePath;
 
   static const expectedAdminCode = 'DUALERT-ADMIN-2025';
 
@@ -57,6 +59,7 @@ class _SignUpPageState extends State<SignUpPage> {
           password: passC.text.trim(),
           matricNo: matricC.text.trim(),
           phone: phoneC.text.trim(),
+          voicePath: _voicePath,
         );
       }
       if (mounted) {
@@ -218,6 +221,15 @@ class _SignUpPageState extends State<SignUpPage> {
                           label: 'Phone Number',
                           icon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 16),
+                        VoiceRecorderWidget(
+                          onRecordingComplete: (voicePath) {
+                            setState(() {
+                              _voicePath = voicePath;
+                            });
+                          },
+                          maxDurationSeconds: 10,
                         ),
                       ] else
                         _buildTextField(

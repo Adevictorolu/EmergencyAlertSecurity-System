@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:dualert/auth/auth_service.dart';
 import 'package:dualert/providers/user_provider.dart';
 import '../utils/app_colors.dart';
-import 'admin_home.dart';
-import 'view_alert_page.dart';
 
 class StudentHome extends StatefulWidget {
   const StudentHome({super.key});
@@ -33,7 +31,10 @@ class _StudentHomeState extends State<StudentHome> {
       SnackBar(
         content: Text(
           message.replaceAll(RegExp(r'\[.*?\]'), '').trim(),
-          style: const TextStyle(fontFamily: 'Montserrat', color: AppColors.textLight),
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            color: AppColors.textLight,
+          ),
         ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
@@ -47,7 +48,11 @@ class _StudentHomeState extends State<StudentHome> {
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontFamily: 'Montserrat', color: AppColors.textLight, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            color: AppColors.textLight,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
@@ -185,7 +190,9 @@ class _StudentHomeState extends State<StudentHome> {
 
               // SOS Button
               GestureDetector(
-                onTap: emergencyLoading ? null : () => _triggerSOS(auth, user.uid),
+                onTap: emergencyLoading
+                    ? null
+                    : () => _triggerSOS(auth, user.uid),
                 child: Container(
                   height: 160,
                   width: 160,
@@ -200,10 +207,7 @@ class _StudentHomeState extends State<StudentHome> {
                         offset: const Offset(0, 10),
                       ),
                     ],
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 4,
-                    ),
+                    border: Border.all(color: Colors.white, width: 4),
                   ),
                   alignment: Alignment.center,
                   child: emergencyLoading
@@ -214,7 +218,11 @@ class _StudentHomeState extends State<StudentHome> {
                       : const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.warning_rounded, color: Colors.white, size: 48),
+                            Icon(
+                              Icons.warning_rounded,
+                              color: Colors.white,
+                              size: 48,
+                            ),
                             SizedBox(height: 8),
                             Text(
                               'SOS',
@@ -252,13 +260,37 @@ class _StudentHomeState extends State<StudentHome> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildQuickBox(auth, user.uid, 'Fire', Icons.local_fire_department, Colors.orange),
-                  _buildQuickBox(auth, user.uid, 'Medical', Icons.medical_services, Colors.blue),
-                  _buildQuickBox(auth, user.uid, 'Security', Icons.security, Colors.green),
-                  _buildQuickBox(auth, user.uid, 'Other', Icons.more_horiz, Colors.purple),
+                  _buildQuickBox(
+                    auth,
+                    user.uid,
+                    'Fire',
+                    Icons.local_fire_department,
+                    Colors.orange,
+                  ),
+                  _buildQuickBox(
+                    auth,
+                    user.uid,
+                    'Medical',
+                    Icons.medical_services,
+                    Colors.blue,
+                  ),
+                  _buildQuickBox(
+                    auth,
+                    user.uid,
+                    'Security',
+                    Icons.security,
+                    Colors.green,
+                  ),
+                  _buildQuickBox(
+                    auth,
+                    user.uid,
+                    'Other',
+                    Icons.more_horiz,
+                    Colors.purple,
+                  ),
                 ],
               ),
-              
+
               const SizedBox(height: 30),
               const Divider(color: AppColors.textSecondary, thickness: 0.2),
               const SizedBox(height: 30),
@@ -288,10 +320,16 @@ class _StudentHomeState extends State<StudentHome> {
                         style: const TextStyle(fontFamily: 'Montserrat'),
                         decoration: InputDecoration(
                           hintText: 'Emergency Type (e.g. Fire, Medical)',
-                          prefixIcon: const Icon(Icons.title, color: AppColors.textSecondary),
+                          prefixIcon: const Icon(
+                            Icons.title,
+                            color: AppColors.textSecondary,
+                          ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryBlue,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -304,7 +342,10 @@ class _StudentHomeState extends State<StudentHome> {
                           hintText: 'Describe the situation and location...',
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryBlue,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -313,13 +354,20 @@ class _StudentHomeState extends State<StudentHome> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton.icon(
-                          onPressed: customLoading ? null : () => _submitCustomAlert(auth, user.uid),
-                          icon: customLoading ? const SizedBox() : const Icon(Icons.send_rounded, size: 20),
+                          onPressed: customLoading
+                              ? null
+                              : () => _submitCustomAlert(auth, user.uid),
+                          icon: customLoading
+                              ? const SizedBox()
+                              : const Icon(Icons.send_rounded, size: 20),
                           label: customLoading
                               ? const SizedBox(
                                   height: 24,
                                   width: 24,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
                                 )
                               : const Text(
                                   'Submit Alert',
@@ -342,20 +390,36 @@ class _StudentHomeState extends State<StudentHome> {
     );
   }
 
-  Widget _buildQuickBox(AuthService auth, String uid, String type, IconData icon, Color color) {
+  Widget _buildQuickBox(
+    AuthService auth,
+    String uid,
+    String type,
+    IconData icon,
+    Color color,
+  ) {
     return GestureDetector(
       onTap: () async {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: Text('Trigger $type Alert?'),
-            content: Text('This will instantly notify everyone about a $type emergency.'),
+            content: Text(
+              'This will instantly notify everyone about a $type emergency.',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                onPressed: () => Navigator.pop(context, true), 
-                child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Confirm',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -384,7 +448,7 @@ class _StudentHomeState extends State<StudentHome> {
               color: color.withOpacity(0.1),
               blurRadius: 10,
               spreadRadius: 2,
-            )
+            ),
           ],
         ),
         child: Column(

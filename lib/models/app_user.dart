@@ -4,7 +4,10 @@ class AppUser {
   final String email;
   final String? matricNo;
   final String? phone;
-  final String role; 
+  final String role;
+  final String? voiceUrl;
+  final bool emailVerified;
+  final DateTime? voiceRecordedAt;
 
   AppUser({
     required this.uid,
@@ -13,6 +16,9 @@ class AppUser {
     this.matricNo,
     this.phone,
     required this.role,
+    this.voiceUrl,
+    this.emailVerified = false,
+    this.voiceRecordedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,7 +28,10 @@ class AppUser {
       'email': email,
       'matricNo': matricNo,
       'phone': phone,
-      'role': role, 
+      'role': role,
+      'voiceUrl': voiceUrl,
+      'emailVerified': emailVerified,
+      'voiceRecordedAt': voiceRecordedAt,
     };
   }
 
@@ -34,6 +43,11 @@ class AppUser {
       matricNo: map['matricNo']?.toString(),
       phone: map['phone']?.toString(),
       role: map['role']?.toString() ?? 'student',
+      voiceUrl: map['voiceUrl']?.toString(),
+      emailVerified: map['emailVerified'] ?? false,
+      voiceRecordedAt: map['voiceRecordedAt'] != null
+          ? DateTime.tryParse(map['voiceRecordedAt'].toString())
+          : null,
     );
   }
 }

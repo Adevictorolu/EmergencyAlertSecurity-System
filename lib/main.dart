@@ -13,6 +13,7 @@ import 'screens/student_home.dart';
 import 'screens/view_alert_page.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/analytics_page.dart';
+import 'screens/email_verification_screen.dart';
 import 'utils/app_colors.dart';
 import 'utils/app_theme.dart';
 import 'providers/theme_provider.dart';
@@ -91,6 +92,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _started = false;
       }
       return const SignInPage();
+    }
+
+    // Check email verification
+    if (!firebaseUser.emailVerified) {
+      return const EmailVerificationScreen();
     }
 
     if (!_started) {
