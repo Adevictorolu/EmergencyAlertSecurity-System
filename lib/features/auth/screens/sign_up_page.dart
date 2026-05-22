@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../auth/auth_service.dart';
-import '../utils/app_colors.dart';
-import '../widgets/voice_recorder_widget.dart';
+import 'package:dualert/features/auth/services/auth_service.dart';
+import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/features/emergency/widgets/voice_recorder_widget.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

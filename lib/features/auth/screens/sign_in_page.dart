@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../auth/auth_service.dart';
-import '../utils/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dualert/features/auth/services/auth_service.dart';
+import 'package:dualert/core/theme/app_colors.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -30,8 +31,25 @@ class _SignInPageState extends State<SignInPage> {
     setState(() => loading = true);
     try {
       final auth = Provider.of<AuthService>(context, listen: false);
-      await auth.signIn(emailC.text.trim(), passC.text.trim());
-      // main.dart's AuthWrapper will handle the routing once user state changes
+      final uc = await auth.signIn(emailC.text.trim(), passC.text.trim());
+
+      // Fetch user role explicitly to ensure instantaneous navigation
+      if (mounted && uc.user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uc.user!.uid)
+            .get();
+        if (doc.exists) {
+          final role = doc.data()?['role'] ?? 'student';
+          if (mounted) {
+            if (role == 'admin') {
+              Navigator.pushReplacementNamed(context, '/admin');
+            } else {
+              Navigator.pushReplacementNamed(context, '/student');
+            }
+          }
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +119,7 @@ class _SignInPageState extends State<SignInPage> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Campus Emergency Security',
+                'Security and Emergency Alert System',
                 style: TextStyle(
                   fontSize: 14,
                   fontFamily: 'Montserrat',
@@ -111,7 +129,12 @@ class _SignInPageState extends State<SignInPage> {
               const SizedBox(height: 40),
               Card(
                 elevation: 8,
-                shadowColor: const Color.fromARGB(255, 0, 0, 0).withValues(alpha: 0.08),
+                shadowColor: const Color.fromARGB(
+                  255,
+                  0,
+                  0,
+                  0,
+                ).withValues(alpha: 0.08),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -196,7 +219,9 @@ class _SignInPageState extends State<SignInPage> {
                             onPressed: loading ? null : _signIn,
                             style: ElevatedButton.styleFrom(
                               elevation: 4,
-                              shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
+                              shadowColor: AppColors.primaryBlue.withValues(
+                                alpha: 0.4,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),

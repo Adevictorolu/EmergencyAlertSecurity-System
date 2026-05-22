@@ -2,8 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart';
 import 'package:uuid/uuid.dart';
-import '../models/app_user.dart';
-import '../models/alert_model.dart';
+import 'package:dualert/models/app_user.dart';
+import 'package:dualert/models/alert_model.dart';
+import 'package:dualert/core/services/email_service.dart';
 import 'dart:io';
 
 class AuthService {
@@ -91,6 +92,9 @@ class AuthService {
         await uc.user!.sendEmailVerification();
       }
 
+      // Send Welcome Email
+      await EmailService.sendWelcomeEmail(email, fullName);
+
       return uc;
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleAuthException(e));
@@ -130,6 +134,9 @@ class AuthService {
       if (!uc.user!.emailVerified) {
         await uc.user!.sendEmailVerification();
       }
+
+      // Send Welcome Email
+      await EmailService.sendWelcomeEmail(email, fullName);
 
       return uc;
     } on FirebaseAuthException catch (e) {
@@ -195,6 +202,20 @@ class AuthService {
       );
 
       await _db.collection('alerts').doc(id).set(alert.toMap());
+
+      // Fetch user to send confirmation email
+      final userDoc = await _db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        if (userData != null && userData['email'] != null) {
+          await EmailService.sendAlertConfirmation(
+            userData['email'],
+            userData['fullName'] ?? 'User',
+            title,
+            description,
+          );
+        }
+      }
     } on SocketException {
       throw Exception('Network issue. Please check your connection.');
     } catch (e) {
@@ -208,6 +229,26 @@ class AuthService {
         'handled': true,
         'handledBy': adminUid,
       });
+
+      // Fetch alert to get sender info for notification
+      final alertDoc = await _db.collection('alerts').doc(alertId).get();
+      if (alertDoc.exists) {
+        final alertData = alertDoc.data();
+        if (alertData != null && alertData['senderUid'] != null) {
+          final userDoc = await _db.collection('users').doc(alertData['senderUid']).get();
+          if (userDoc.exists) {
+             final userData = userDoc.data();
+             if (userData != null && userData['email'] != null) {
+               await EmailService.sendAlertStatusUpdate(
+                 userData['email'],
+                 userData['fullName'] ?? 'User',
+                 alertData['title'] ?? 'Alert',
+                 'Handled/Resolved',
+               );
+             }
+          }
+        }
+      }
     } catch (e) {
       throw Exception(_handleGenericException(e));
     }

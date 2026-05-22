@@ -4,18 +4,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'auth/auth_service.dart';
+import 'package:dualert/features/auth/services/auth_service.dart';
 import 'providers/user_provider.dart';
-import 'screens/sign_in_page.dart';
-import 'screens/sign_up_page.dart';
-import 'screens/admin_home.dart';
-import 'screens/student_home.dart';
-import 'screens/view_alert_page.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/analytics_page.dart';
-import 'screens/email_verification_screen.dart';
-import 'utils/app_colors.dart';
-import 'utils/app_theme.dart';
+import 'package:dualert/features/auth/screens/sign_in_page.dart';
+import 'package:dualert/features/auth/screens/sign_up_page.dart';
+import 'package:dualert/features/dashboard/screens/admin_home.dart';
+import 'package:dualert/features/emergency/screens/student_home.dart';
+import 'package:dualert/features/dashboard/screens/view_alert_page.dart';
+import 'package:dualert/features/auth/screens/onboarding_screen.dart';
+import 'package:dualert/features/dashboard/screens/analytics_page.dart';
+import 'package:dualert/features/auth/screens/email_verification_screen.dart';
+import 'package:dualert/features/settings/screens/settings_screen.dart';
+import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 
 void main() async {
@@ -60,6 +61,8 @@ class DualertApp extends StatelessWidget {
               '/admin': (_) => const AdminHome(),
               '/history': (_) => const ViewAlertPage(),
               '/analytics': (_) => const AnalyticsPage(),
+              '/settings': (_) => const SettingsScreen(),
+              '/verification': (_) => const EmailVerificationScreen(),
             },
             home: seenOnboarding ? const AuthWrapper() : const OnboardingScreen(),
           );

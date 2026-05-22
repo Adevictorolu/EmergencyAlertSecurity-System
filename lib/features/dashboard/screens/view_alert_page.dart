@@ -4,9 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../providers/user_provider.dart';
-import '../models/alert_model.dart';
-import '../utils/app_colors.dart';
+import 'package:dualert/providers/user_provider.dart';
+import 'package:dualert/models/alert_model.dart';
+import 'package:dualert/core/theme/app_colors.dart';
 
 class ViewAlertPage extends StatelessWidget {
   const ViewAlertPage({super.key});

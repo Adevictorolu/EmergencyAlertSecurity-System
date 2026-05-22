@@ -1,9 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:dualert/auth/auth_service.dart';
+import 'package:dualert/features/auth/services/auth_service.dart';
 import 'package:dualert/providers/user_provider.dart';
-import '../utils/app_colors.dart';
+import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/features/emergency/widgets/speech_input_widget.dart';
 
 class StudentHome extends StatefulWidget {
   const StudentHome({super.key});
@@ -152,6 +153,11 @@ class _StudentHomeState extends State<StudentHome> {
             icon: const Icon(Icons.history),
             tooltip: 'General Alert History',
             onPressed: () => Navigator.pushNamed(context, '/history'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -334,20 +340,37 @@ class _StudentHomeState extends State<StudentHome> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: descC,
-                        maxLines: 3,
-                        style: const TextStyle(fontFamily: 'Montserrat'),
-                        decoration: InputDecoration(
-                          hintText: 'Describe the situation and location...',
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: AppColors.primaryBlue,
-                              width: 1.5,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: descC,
+                              maxLines: 3,
+                              style: const TextStyle(fontFamily: 'Montserrat'),
+                              decoration: InputDecoration(
+                                hintText: 'Describe the situation and location...',
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(
+                                    color: AppColors.primaryBlue,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          SpeechInputWidget(
+                            controller: descC,
+                            onTextRecognized: (newText) {
+                              descC.text = newText;
+                              descC.selection = TextSelection.fromPosition(
+                                TextPosition(offset: descC.text.length),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       SizedBox(

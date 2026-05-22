@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/app_colors.dart';
-import '../main.dart';
+import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/main.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

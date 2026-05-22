@@ -4,10 +4,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import '../auth/auth_service.dart';
-import '../models/alert_model.dart';
-import '../utils/app_colors.dart';
-import '../widgets/voice_player_widget.dart';
+import 'package:dualert/features/auth/services/auth_service.dart';
+import 'package:dualert/models/alert_model.dart';
+import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/features/dashboard/widgets/voice_player_widget.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});
@@ -18,7 +18,7 @@ class AdminHome extends StatelessWidget {
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Admin Dashboard'), 
+        title: const Text('Admin Dashboard'),
         centerTitle: true,
         backgroundColor: Colors.white.withOpacity(0.4),
         elevation: 0,
@@ -28,6 +28,13 @@ class AdminHome extends StatelessWidget {
             child: Container(color: Colors.transparent),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -92,10 +99,12 @@ class AdminHome extends StatelessWidget {
                     Map<String, dynamic> senderData = {};
                     bool isLoadingSender = true;
 
-                    if (senderSnapshot.connectionState == ConnectionState.done &&
+                    if (senderSnapshot.connectionState ==
+                            ConnectionState.done &&
                         senderSnapshot.hasData) {
                       senderData =
-                          senderSnapshot.data!.data() as Map<String, dynamic>? ??
+                          senderSnapshot.data!.data()
+                              as Map<String, dynamic>? ??
                           {};
                       isLoadingSender = false;
                     }
@@ -194,13 +203,15 @@ class AdminHome extends StatelessWidget {
                 border: Border.all(color: Colors.grey.withOpacity(0.2)),
               ),
               child: isLoadingSender
-                  ? const Center(
+                  ? Center(
                       child: Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
                         ),
                       ),
                     )
@@ -216,15 +227,16 @@ class AdminHome extends StatelessWidget {
                           Icons.email,
                           senderData['email'] ?? 'N/A',
                         ),
-                        if (senderData['matricNo'] != null && senderData['matricNo'].toString().isNotEmpty)
-                          _buildInfoRow(
-                            Icons.badge,
-                            senderData['matricNo'],
-                          ),
-                        if (senderData['phone'] != null && senderData['phone'].toString().isNotEmpty)
+                        if (senderData['matricNo'] != null &&
+                            senderData['matricNo'].toString().isNotEmpty)
+                          _buildInfoRow(Icons.badge, senderData['matricNo']),
+                        if (senderData['phone'] != null &&
+                            senderData['phone'].toString().isNotEmpty)
                           InkWell(
                             onTap: () async {
-                              final telUrl = Uri.parse('tel:${senderData['phone']}');
+                              final telUrl = Uri.parse(
+                                'tel:${senderData['phone']}',
+                              );
                               if (await canLaunchUrl(telUrl)) {
                                 await launchUrl(telUrl);
                               }
@@ -233,7 +245,11 @@ class AdminHome extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.phone, size: 18, color: AppColors.primaryBlue),
+                                  const Icon(
+                                    Icons.phone,
+                                    size: 18,
+                                    color: AppColors.primaryBlue,
+                                  ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(

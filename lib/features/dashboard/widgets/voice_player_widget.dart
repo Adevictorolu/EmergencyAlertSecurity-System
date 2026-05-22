@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
-import '../utils/app_colors.dart';
+import 'package:dualert/core/theme/app_colors.dart';
 
 class VoicePlayerWidget extends StatefulWidget {
   final String? voiceUrl;
@@ -167,35 +167,6 @@ class _VoicePlayerWidgetState extends State<VoicePlayerWidget> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primaryBlue,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        _isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Tap to play voice recording",
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
                     ),
                     child: Center(
                       child: Icon(

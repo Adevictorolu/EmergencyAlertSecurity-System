@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'dart:math' as math;
-import '../models/alert_model.dart';
-import '../utils/app_colors.dart';
+import 'package:dualert/models/alert_model.dart';
+import 'package:dualert/core/theme/app_colors.dart';
 
 class AnalyticsPage extends StatelessWidget {
   const AnalyticsPage({super.key});

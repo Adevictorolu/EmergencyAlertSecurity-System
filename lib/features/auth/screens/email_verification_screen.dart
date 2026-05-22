@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../utils/app_colors.dart';
+import 'package:dualert/core/theme/app_colors.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
@@ -13,15 +14,27 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isVerified = false;
   bool _isLoading = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _checkEmailVerification();
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_isVerified) {
+        _checkEmailVerification(showLoading: false);
+      }
+    });
   }
 
-  Future<void> _checkEmailVerification() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkEmailVerification({bool showLoading = true}) async {
+    if (showLoading) setState(() => _isLoading = true);
     
     // Reload user to get the latest email verification status
     await _auth.currentUser?.reload();
@@ -29,7 +42,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (mounted) {
       setState(() {
         _isVerified = _auth.currentUser?.emailVerified ?? false;
-        _isLoading = false;
+        if (showLoading) _isLoading = false;
       });
     }
 
