@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dualert/core/theme/app_colors.dart';
+import 'package:dualert/main.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
@@ -46,10 +47,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       });
     }
 
-    if (_isVerified && mounted) {
-      // Navigate back or to home screen
-      Navigator.of(context).pop(true);
-    }
+    // If verified, AuthWrapper will automatically rebuild because of userChanges stream.
   }
 
   Future<void> _resendVerificationEmail() async {

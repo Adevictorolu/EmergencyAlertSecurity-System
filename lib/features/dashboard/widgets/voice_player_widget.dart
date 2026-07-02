@@ -96,7 +96,6 @@ class _VoicePlayerWidgetState extends State<VoicePlayerWidget> {
           children: [
             const Icon(
               Icons.mic_off,
-              color: AppColors.textSecondary,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -106,7 +105,6 @@ class _VoicePlayerWidgetState extends State<VoicePlayerWidget> {
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: 12,
-                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -184,7 +182,6 @@ class _VoicePlayerWidgetState extends State<VoicePlayerWidget> {
                   style: const TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 12,
-                    color: AppColors.textSecondary,
                   ),
                 ),
               ),

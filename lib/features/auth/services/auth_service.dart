@@ -12,6 +12,7 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get userChanges => _auth.userChanges();
 
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
@@ -58,7 +59,6 @@ class AuthService {
     required String password,
     String? matricNo,
     String? phone,
-    String? voicePath,
   }) async {
     try {
       final uc = await _auth.createUserWithEmailAndPassword(
@@ -67,12 +67,6 @@ class AuthService {
       );
       final uid = uc.user!.uid;
 
-      DateTime? voiceRecordedAt;
-
-      if (voicePath != null && voicePath.isNotEmpty) {
-        voiceRecordedAt = DateTime.now();
-      }
-
       final appUser = AppUser(
         uid: uid,
         fullName: fullName,
@@ -80,9 +74,7 @@ class AuthService {
         role: 'student',
         matricNo: matricNo,
         phone: phone,
-        voiceUrl: voicePath,
         emailVerified: false,
-        voiceRecordedAt: voiceRecordedAt,
       );
 
       await _db.collection('users').doc(uid).set(appUser.toMap());
@@ -208,8 +200,7 @@ class AuthService {
       if (userDoc.exists) {
         final userData = userDoc.data();
         if (userData != null && userData['email'] != null) {
-          await EmailService.sendAlertConfirmation(
-            userData['email'],
+          await EmailService.broadcastEmergencyAlert(
             userData['fullName'] ?? 'User',
             title,
             description,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dualert/features/auth/services/auth_service.dart';
 import 'package:dualert/core/theme/app_colors.dart';
-import 'package:dualert/features/emergency/widgets/voice_recorder_widget.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -23,7 +22,6 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isAdmin = false;
   bool loading = false;
   bool _obscureText = true;
-  String? _voicePath;
 
   static const expectedAdminCode = 'DUALERT-ADMIN-2025';
 
@@ -59,7 +57,6 @@ class _SignUpPageState extends State<SignUpPage> {
           password: passC.text.trim(),
           matricNo: matricC.text.trim(),
           phone: phoneC.text.trim(),
-          voicePath: _voicePath,
         );
       }
       if (mounted) {
@@ -73,7 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.pop(context);
+        // AuthWrapper will handle the state change and show EmailVerificationScreen automatically.
       }
     } catch (e) {
       if (mounted) {
@@ -107,6 +104,7 @@ class _SignUpPageState extends State<SignUpPage> {
     required IconData icon,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -122,7 +120,6 @@ class _SignUpPageState extends State<SignUpPage> {
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: AppColors.textSecondary,
                   ),
                   onPressed: () {
                     setState(() {
@@ -136,7 +133,7 @@ class _SignUpPageState extends State<SignUpPage> {
             borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
           ),
         ),
-        validator: (value) =>
+        validator: validator ?? (value) =>
             (value == null || value.isEmpty) ? 'Please enter $label' : null,
       ),
     );
@@ -187,7 +184,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.background),
                         ),
@@ -198,7 +194,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
                             ),
                           ),
                           value: isAdmin,
@@ -215,21 +210,21 @@ class _SignUpPageState extends State<SignUpPage> {
                           controller: matricC,
                           label: 'Matric Number',
                           icon: Icons.badge_outlined,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter Matric Number';
+                            }
+                            if (!value.trim().toUpperCase().startsWith('DU')) {
+                              return 'Matric Number must start with "DU"';
+                            }
+                            return null;
+                          },
                         ),
                         _buildTextField(
                           controller: phoneC,
                           label: 'Phone Number',
                           icon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        VoiceRecorderWidget(
-                          onRecordingComplete: (voicePath) {
-                            setState(() {
-                              _voicePath = voicePath;
-                            });
-                          },
-                          maxDurationSeconds: 10,
                         ),
                       ] else
                         _buildTextField(
@@ -287,7 +282,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   "Already have an account? ",
                   style: TextStyle(
                     fontFamily: 'Montserrat',
-                    color: AppColors.textSecondary,
                   ),
                 ),
                 InkWell(

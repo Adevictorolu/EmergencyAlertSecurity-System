@@ -40,7 +40,7 @@ class DualertApp extends StatelessWidget {
       providers: [
         Provider<AuthService>(create: (_) => AuthService()),
         StreamProvider<User?>(
-          create: (context) => context.read<AuthService>().authStateChanges,
+          create: (context) => context.read<AuthService>().userChanges,
           initialData: null,
         ),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
@@ -57,14 +57,17 @@ class DualertApp extends StatelessWidget {
             routes: {
               '/signin': (_) => const SignInPage(),
               '/signup': (_) => const SignUpPage(),
-              '/student': (_) => const StudentHome(), // Maps to "Report Emergency"
+              '/student': (_) =>
+                  const StudentHome(), // Maps to "Report Emergency"
               '/admin': (_) => const AdminHome(),
               '/history': (_) => const ViewAlertPage(),
               '/analytics': (_) => const AnalyticsPage(),
               '/settings': (_) => const SettingsScreen(),
               '/verification': (_) => const EmailVerificationScreen(),
             },
-            home: seenOnboarding ? const AuthWrapper() : const OnboardingScreen(),
+            home: seenOnboarding
+                ? const AuthWrapper()
+                : const OnboardingScreen(),
           );
         },
       ),

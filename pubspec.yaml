@@ -29,6 +29,7 @@ dependencies:
   permission_handler: ^11.4.0
   speech_to_text: ^6.6.0
   flutter_local_notifications: ^17.1.2
+  universal_html: ^2.3.0
 
 dev_dependencies:
   flutter_test:

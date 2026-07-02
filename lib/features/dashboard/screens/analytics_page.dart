@@ -7,6 +7,8 @@ import 'dart:math' as math;
 import 'package:dualert/models/alert_model.dart';
 import 'package:dualert/core/theme/app_colors.dart';
 
+import 'package:universal_html/html.dart' as html;
+
 class AnalyticsPage extends StatelessWidget {
   const AnalyticsPage({super.key});
 
@@ -20,13 +22,12 @@ class AnalyticsPage extends StatelessWidget {
       }
       
       final bytes = Uri.encodeComponent(csv);
-      final url = Uri.parse('data:text/csv;charset=utf-8,$bytes');
+      final url = 'data:text/csv;charset=utf-8,$bytes';
       
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Could not launch export';
-      }
+      html.AnchorElement(href: url)
+        ..setAttribute('download', 'dualert_analytics.csv')
+        ..click();
+      
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -42,11 +43,11 @@ class AnalyticsPage extends StatelessWidget {
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('System Analytics', style: TextStyle(color: AppColors.textPrimary)),
+        title: const Text('System Analytics', style: TextStyle()),
         centerTitle: true,
         backgroundColor: Colors.white.withOpacity(0.4),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: const IconThemeData(),
         flexibleSpace: ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -62,7 +63,7 @@ class AnalyticsPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No analytical data available.', style: TextStyle(fontFamily: 'Montserrat', color: AppColors.textSecondary)));
+            return const Center(child: Text('No analytical data available.', style: TextStyle(fontFamily: 'Montserrat')));
           }
 
           final alerts = snapshot.data!.docs.map((doc) => AlertModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
@@ -93,7 +94,7 @@ class AnalyticsPage extends StatelessWidget {
                     children: [
                       const Text(
                         'Overview',
-                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -118,7 +119,7 @@ class AnalyticsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   
-                  const Text('Distribution by Category', style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text('Distribution by Category', style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),
                   
                   Container(
@@ -158,7 +159,7 @@ class AnalyticsPage extends StatelessWidget {
                   ),
                   
                   const SizedBox(height: 40),
-                  const Text('Volume Comparison', style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text('Volume Comparison', style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),
                   
                   Container(
@@ -201,7 +202,7 @@ class AnalyticsPage extends StatelessWidget {
         children: [
           Text(value, style: TextStyle(fontFamily: 'Montserrat', fontSize: 28, fontWeight: FontWeight.w900, color: color)),
           const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary), textAlign: TextAlign.center),
+          Text(title, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -214,7 +215,7 @@ class AnalyticsPage extends StatelessWidget {
         children: [
           Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 8),
-          Text('$label ($count)', style: const TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text('$label ($count)', style: const TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600)),
         ],
       ),
     );

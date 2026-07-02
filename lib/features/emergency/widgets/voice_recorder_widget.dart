@@ -152,7 +152,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
         border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -165,7 +164,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
               fontFamily: 'Montserrat',
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -174,7 +172,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
             style: const TextStyle(
               fontFamily: 'Montserrat',
               fontSize: 12,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -215,7 +212,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                       fontFamily: 'Montserrat',
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: _isRecording ? AppColors.error : AppColors.textSecondary,
+                      color: _isRecording ? AppColors.error : null,
                     ),
                   ),
                 ],
@@ -244,8 +241,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                           'Recording saved (${_recordingDuration}s)',
                           style: const TextStyle(
                             fontFamily: 'Montserrat',
-                            fontSize: 12,
-                            color: AppColors.success,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

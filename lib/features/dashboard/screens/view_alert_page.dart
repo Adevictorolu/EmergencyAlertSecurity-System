@@ -62,7 +62,7 @@ class ViewAlertPage extends StatelessWidget {
                 'Error loading alerts.',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             );
@@ -73,14 +73,14 @@ class ViewAlertPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: AppColors.textSecondary),
+                  Icon(Icons.inbox_outlined, size: 64),
                   SizedBox(height: 16),
                   Text(
                     'No alerts submitted yet.',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 18,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -120,7 +120,6 @@ class ViewAlertPage extends StatelessWidget {
                                 fontFamily: 'Montserrat',
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -134,7 +133,6 @@ class ViewAlertPage extends StatelessWidget {
                           fontFamily: 'Montserrat',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -143,7 +141,6 @@ class ViewAlertPage extends StatelessWidget {
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 14,
-                          color: AppColors.textSecondary,
                           height: 1.4,
                         ),
                       ),

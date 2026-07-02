@@ -5,6 +5,7 @@ import 'package:dualert/features/auth/services/auth_service.dart';
 import 'package:dualert/providers/user_provider.dart';
 import 'package:dualert/core/theme/app_colors.dart';
 import 'package:dualert/features/emergency/widgets/speech_input_widget.dart';
+import 'package:dualert/features/emergency/widgets/voice_recorder_widget.dart';
 
 class StudentHome extends StatefulWidget {
   const StudentHome({super.key});
@@ -18,6 +19,7 @@ class _StudentHomeState extends State<StudentHome> {
   final descC = TextEditingController();
   bool customLoading = false;
   bool emergencyLoading = false;
+  String? _voicePath;
 
   @override
   void dispose() {
@@ -68,8 +70,10 @@ class _StudentHomeState extends State<StudentHome> {
         uid: uid,
         title: 'EMERGENCY SOS',
         description: 'Immediate help needed! SOS triggered remotely.',
+        voicePath: _voicePath,
       );
       _showSuccess('Emergency alert sent!');
+      setState(() => _voicePath = null);
     } catch (e) {
       _showError(e.toString());
     } finally {
@@ -89,12 +93,14 @@ class _StudentHomeState extends State<StudentHome> {
         uid: uid,
         title: titleC.text.trim(),
         description: descC.text.trim(),
+        voicePath: _voicePath,
       );
       titleC.clear();
       descC.clear();
       if (!mounted) return;
       FocusScope.of(context).unfocus();
       _showSuccess('Alert submitted successfully!');
+      setState(() => _voicePath = null);
     } catch (e) {
       _showError(e.toString());
     } finally {
@@ -124,17 +130,30 @@ class _StudentHomeState extends State<StudentHome> {
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Report Emergency'),
-        centerTitle: false,
-        backgroundColor: Colors.white.withOpacity(0.4),
-        elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: AppBar(
+                title: const Text('Report Emergency'),
+                centerTitle: false,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
+                elevation: 0,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                ),
         actions: [
           if (isAdmin)
             IconButton(
@@ -165,6 +184,10 @@ class _StudentHomeState extends State<StudentHome> {
             onPressed: () async => await auth.signOut(),
           ),
         ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -177,8 +200,7 @@ class _StudentHomeState extends State<StudentHome> {
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 8),
@@ -187,9 +209,7 @@ class _StudentHomeState extends State<StudentHome> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
+                  height: 1.5,
                 ),
               ),
               const SizedBox(height: 30),
@@ -246,7 +266,7 @@ class _StudentHomeState extends State<StudentHome> {
               ),
 
               const SizedBox(height: 50),
-              const Divider(color: AppColors.textSecondary, thickness: 0.2),
+              const Divider(thickness: 0.2),
               const SizedBox(height: 30),
 
               // Quick Alerts
@@ -258,7 +278,6 @@ class _StudentHomeState extends State<StudentHome> {
                     fontFamily: 'Montserrat',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -298,7 +317,7 @@ class _StudentHomeState extends State<StudentHome> {
               ),
 
               const SizedBox(height: 30),
-              const Divider(color: AppColors.textSecondary, thickness: 0.2),
+              const Divider(thickness: 0.2),
               const SizedBox(height: 30),
 
               // Custom Alert Form
@@ -310,7 +329,6 @@ class _StudentHomeState extends State<StudentHome> {
                     fontFamily: 'Montserrat',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -328,7 +346,6 @@ class _StudentHomeState extends State<StudentHome> {
                           hintText: 'Emergency Type (e.g. Fire, Medical)',
                           prefixIcon: const Icon(
                             Icons.title,
-                            color: AppColors.textSecondary,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -371,6 +388,12 @@ class _StudentHomeState extends State<StudentHome> {
                             },
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      VoiceRecorderWidget(
+                        onRecordingComplete: (path) {
+                          setState(() => _voicePath = path);
+                        },
                       ),
                       const SizedBox(height: 16),
                       SizedBox(

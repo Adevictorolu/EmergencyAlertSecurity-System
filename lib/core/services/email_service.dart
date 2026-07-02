@@ -1,12 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+import 'dart:typed_data';
+
 class EmailService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  static String _getBaseHtml(String title, String content) {
+  static Future<String> _getBaseHtml(String title, String content) async {
+    String logoBase64 = '';
+    try {
+      final ByteData data = await rootBundle.load('assets/imgs/DUALERT BRAND copy.jpg');
+      final buffer = data.buffer;
+      final base64Image = base64Encode(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+      logoBase64 = '<img src="data:image/jpeg;base64,$base64Image" alt="DUalert Logo" style="max-width: 150px; margin-bottom: 10px;" />';
+    } catch (e) {
+      print('Could not load logo for email: $e');
+    }
+
     return '''
       <div style="font-family: 'Montserrat', sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
         <div style="background-color: #003366; padding: 20px; text-align: center;">
+          $logoBase64
           <h1 style="color: #ffffff; margin: 0;">DUalert</h1>
         </div>
         <div style="padding: 30px; background-color: #ffffff;">
@@ -34,7 +49,7 @@ class EmailService {
       'to': email,
       'message': {
         'subject': 'Welcome to DUalert',
-        'html': _getBaseHtml('Welcome!', content),
+        'html': await _getBaseHtml('Welcome!', content),
       },
     });
   }
@@ -54,7 +69,7 @@ class EmailService {
       'to': email,
       'message': {
         'subject': 'Emergency Alert Received: $alertTitle',
-        'html': _getBaseHtml('Alert Confirmation', content),
+        'html': await _getBaseHtml('Alert Confirmation', content),
       },
     });
   }
@@ -71,8 +86,45 @@ class EmailService {
       'to': email,
       'message': {
         'subject': 'Alert Status Update: $alertTitle',
-        'html': _getBaseHtml('Alert Update', content),
+        'html': await _getBaseHtml('Alert Update', content),
       },
     });
+  }
+
+  static Future<void> broadcastEmergencyAlert(String senderName, String alertTitle, String alertDesc) async {
+    try {
+      final usersSnapshot = await _db.collection('users').get();
+      List<String> bccEmails = [];
+      
+      for (var doc in usersSnapshot.docs) {
+        final data = doc.data();
+        if (data['email'] != null && data['email'].toString().isNotEmpty) {
+          bccEmails.add(data['email'].toString());
+        }
+      }
+
+      if (bccEmails.isEmpty) return;
+
+      final content = '''
+        <p><strong>URGENT NOTIFICATION</strong></p>
+        <p>An emergency alert has been issued by <strong>$senderName</strong>:</p>
+        <div style="background-color: #fff3e0; padding: 15px; border-left: 4px solid #ff0000; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #d32f2f;">$alertTitle</h3>
+          <p style="margin-bottom: 0;">$alertDesc</p>
+        </div>
+        <p>Security personnel are responding to this incident. Please remain vigilant and follow any official instructions.</p>
+      ''';
+
+      await _db.collection('mail').add({
+        'to': 'noreply@dualert.com', // Placeholder 'to' address
+        'bcc': bccEmails,
+        'message': {
+          'subject': 'URGENT: $alertTitle',
+          'html': await _getBaseHtml('Emergency Alert Broadcast', content),
+        },
+      });
+    } catch (e) {
+      print('Error broadcasting email: $e');
+    }
   }
 }

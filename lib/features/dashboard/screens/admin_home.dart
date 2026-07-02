@@ -17,24 +17,41 @@ class AdminHome extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Admin Dashboard'),
-        centerTitle: true,
-        backgroundColor: Colors.white.withOpacity(0.4),
-        elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: AppBar(
+                title: const Text('Admin Dashboard'),
+                centerTitle: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
+                elevation: 0,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    tooltip: 'Settings',
+                    onPressed: () => Navigator.pushNamed(context, '/settings'),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-          ),
-        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -60,15 +77,12 @@ class AdminHome extends StatelessWidget {
                   Icon(
                     Icons.notifications_off_outlined,
                     size: 64,
-                    color: AppColors.textSecondary,
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No alerts yet',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 20,
-                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -156,7 +170,6 @@ class AdminHome extends StatelessWidget {
                       fontFamily: 'Montserrat',
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -170,7 +183,6 @@ class AdminHome extends StatelessWidget {
                 fontFamily: 'Montserrat',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
@@ -179,7 +191,6 @@ class AdminHome extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Montserrat',
                 fontSize: 15,
-                color: AppColors.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -190,7 +201,6 @@ class AdminHome extends StatelessWidget {
                 fontFamily: 'Montserrat',
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
                 letterSpacing: 1.2,
               ),
             ),
@@ -333,8 +343,7 @@ class AdminHome extends StatelessWidget {
                     'Recorded: ${DateFormat('MMM d, yyyy • h:mm a').format(alert.voiceRecordedAt!)}',
                     style: const TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
+                      fontSize: 14,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -444,7 +453,7 @@ class AdminHome extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.textSecondary),
+          Icon(icon, size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -453,7 +462,6 @@ class AdminHome extends StatelessWidget {
                 fontFamily: 'Montserrat',
                 fontSize: 14,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: isBold ? AppColors.textPrimary : AppColors.textSecondary,
               ),
             ),
           ),

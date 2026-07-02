@@ -33,23 +33,8 @@ class _SignInPageState extends State<SignInPage> {
       final auth = Provider.of<AuthService>(context, listen: false);
       final uc = await auth.signIn(emailC.text.trim(), passC.text.trim());
 
-      // Fetch user role explicitly to ensure instantaneous navigation
-      if (mounted && uc.user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uc.user!.uid)
-            .get();
-        if (doc.exists) {
-          final role = doc.data()?['role'] ?? 'student';
-          if (mounted) {
-            if (role == 'admin') {
-              Navigator.pushReplacementNamed(context, '/admin');
-            } else {
-              Navigator.pushReplacementNamed(context, '/student');
-            }
-          }
-        }
-      }
+      // AuthWrapper will automatically detect the auth state change
+      // and navigate to EmailVerificationScreen, StudentHome, or AdminHome.
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +108,6 @@ class _SignInPageState extends State<SignInPage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontFamily: 'Montserrat',
-                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 40),
@@ -177,7 +161,6 @@ class _SignInPageState extends State<SignInPage> {
                                 _obscureText
                                     ? Icons.visibility_off
                                     : Icons.visibility,
-                                color: AppColors.textSecondary,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -252,8 +235,8 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
                 children: [
                   const Text(
                     "Don't have an account? ",

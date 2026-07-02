@@ -77,7 +77,8 @@ class SettingsScreen extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.info_outline, color: AppColors.primaryBlue),
               title: Text('About DUalert'),
-              subtitle: Text('Version 1.0.0'),
+              subtitle: Text('Version 1.0.0\nDeveloper: Ademola Victor Oluokun\nFinal Year Project'),
+              isThreeLine: true,
             ),
           ),
         ],
@@ -93,7 +94,6 @@ class SettingsScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: AppColors.textSecondary,
         ),
       ),
     );
