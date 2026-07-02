@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:location/location.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:uuid/uuid.dart';
 import 'package:dualert/models/app_user.dart';
 import 'package:dualert/models/alert_model.dart';
 import 'package:dualert/core/services/email_service.dart';
-import 'dart:io';
+
+// Only import dart:io on non-web platforms
+import 'auth_service_io.dart' if (dart.library.html) 'auth_service_web.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -34,10 +36,13 @@ class AuthService {
   }
 
   String _handleGenericException(dynamic e) {
-    if (e is SocketException) {
+    final eStr = e.toString();
+    if (isSocketException(e)) {
       return 'Network issue. Please check your connection.';
     }
-    return e.toString().contains('Exception:') ? e.toString().replaceAll('Exception: ', '') : 'Something went wrong. Please try again.';
+    return eStr.contains('Exception:')
+        ? eStr.replaceAll('Exception: ', '')
+        : 'Something went wrong. Please try again.';
   }
 
   Future<UserCredential> signIn(String email, String password) async {
@@ -78,7 +83,7 @@ class AuthService {
       );
 
       await _db.collection('users').doc(uid).set(appUser.toMap());
-      
+
       // Send Email Verification
       if (!uc.user!.emailVerified) {
         await uc.user!.sendEmailVerification();
@@ -121,7 +126,7 @@ class AuthService {
       );
 
       await _db.collection('users').doc(uid).set(appUser.toMap());
-      
+
       // Send Email Verification
       if (!uc.user!.emailVerified) {
         await uc.user!.sendEmailVerification();
@@ -140,8 +145,6 @@ class AuthService {
 
   Future<void> signOut() async => _auth.signOut();
 
-
-
   Future<void> createAlert({
     required String uid,
     required String title,
@@ -149,31 +152,22 @@ class AuthService {
     String? voicePath,
   }) async {
     try {
-      final location = Location();
-      bool serviceEnabled = await location.serviceEnabled();
-      if (!serviceEnabled) {
-        serviceEnabled = await location.requestService();
-        if (!serviceEnabled) throw Exception('Location services are disabled. Please enable them to send an alert.');
-      }
+      double? lat;
+      double? lng;
 
-      PermissionStatus permissionGranted = await location.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
-        permissionGranted = await location.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
-          throw Exception('Location permission is required to send an alert.');
-        }
-      }
-      
-      LocationData? locData;
-      try {
-        locData = await location.getLocation();
-      } catch (e) {
-        // Fallback or ignore if it fails to get exact location
-        print("Warning: Could not get exact location: $e");
+      if (kIsWeb) {
+        // Use browser Geolocation API on web
+        final position = await getWebLocation();
+        lat = position?['lat'];
+        lng = position?['lng'];
+      } else {
+        // Use location package on native platforms
+        final locData = await getNativeLocation();
+        lat = locData?['lat'];
+        lng = locData?['lng'];
       }
 
       DateTime? voiceRecordedAt;
-
       if (voicePath != null && voicePath.isNotEmpty) {
         voiceRecordedAt = DateTime.now();
       }
@@ -187,8 +181,8 @@ class AuthService {
         handled: false,
         createdAt: DateTime.now(),
         senderUid: uid,
-        lat: locData?.latitude,
-        lng: locData?.longitude,
+        lat: lat,
+        lng: lng,
         voiceUrl: voicePath,
         voiceRecordedAt: voiceRecordedAt,
       );
@@ -207,8 +201,6 @@ class AuthService {
           );
         }
       }
-    } on SocketException {
-      throw Exception('Network issue. Please check your connection.');
     } catch (e) {
       throw Exception(_handleGenericException(e));
     }
@@ -226,17 +218,18 @@ class AuthService {
       if (alertDoc.exists) {
         final alertData = alertDoc.data();
         if (alertData != null && alertData['senderUid'] != null) {
-          final userDoc = await _db.collection('users').doc(alertData['senderUid']).get();
+          final userDoc =
+              await _db.collection('users').doc(alertData['senderUid']).get();
           if (userDoc.exists) {
-             final userData = userDoc.data();
-             if (userData != null && userData['email'] != null) {
-               await EmailService.sendAlertStatusUpdate(
-                 userData['email'],
-                 userData['fullName'] ?? 'User',
-                 alertData['title'] ?? 'Alert',
-                 'Handled/Resolved',
-               );
-             }
+            final userData = userDoc.data();
+            if (userData != null && userData['email'] != null) {
+              await EmailService.sendAlertStatusUpdate(
+                userData['email'],
+                userData['fullName'] ?? 'User',
+                alertData['title'] ?? 'Alert',
+                'Handled/Resolved',
+              );
+            }
           }
         }
       }

@@ -150,7 +150,7 @@ class ViewAlertPage extends StatelessWidget {
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: () async {
-                              final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${alert.lat},${alert.lng}');
+                              final url = Uri.parse('https://www.openstreetmap.org/?mlat=${alert.lat}&mlon=${alert.lng}&zoom=17');
                               if (await canLaunchUrl(url)) {
                                 await launchUrl(url, mode: LaunchMode.externalApplication);
                               }

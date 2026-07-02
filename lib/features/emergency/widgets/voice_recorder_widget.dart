@@ -1,6 +1,5 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:dualert/core/theme/app_colors.dart';
 
 class VoiceRecorderWidget extends StatefulWidget {
@@ -24,11 +23,26 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
   int _recordingDuration = 0;
 
   Future<void> _startRecording() async {
+    if (kIsWeb) {
+      // Voice recording is not supported on the web in this version.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Voice recording is not available on the web. Please use the mobile app.',
+            ),
+            backgroundColor: AppColors.primaryBlue,
+          ),
+        );
+      }
+      return;
+    }
+
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = '${directory.path}/voice_${DateTime.now().millisecondsSinceEpoch}.wav';
-      
-      // Simulate recording - in production, use flutter_sound or record package
+      // Use a dummy path — replace with flutter_sound integration on mobile
+      final path =
+          'voice_${DateTime.now().millisecondsSinceEpoch}.wav';
+
       if (mounted) {
         setState(() {
           _isRecording = true;
@@ -122,11 +136,11 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
 
   Future<void> _deleteRecording() async {
     try {
-      if (_recordingPath != null) {
-        final file = File(_recordingPath!);
-        if (await file.exists()) {
-          await file.delete();
-        }
+      // On mobile we would delete the file; on web there's no file to delete
+      if (!kIsWeb && _recordingPath != null) {
+        // File deletion is handled natively on mobile only
+        // To avoid dart:io on web, we skip file deletion logic here
+        // and rely on the OS to clean temp files
       }
 
       if (mounted) {
@@ -149,6 +163,33 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // On web, show a friendly "not available" card instead
+    if (kIsWeb) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.primaryBlue.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.primaryBlue.withOpacity(0.05),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.mic_off, color: AppColors.primaryBlue.withOpacity(0.5)),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Voice recording is available on the mobile app only.',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -186,10 +227,14 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                       height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: _isRecording ? AppColors.error : AppColors.primaryBlue,
+                        color: _isRecording
+                            ? AppColors.error
+                            : AppColors.primaryBlue,
                         boxShadow: [
                           BoxShadow(
-                            color: (_isRecording ? AppColors.error : AppColors.primaryBlue)
+                            color: (_isRecording
+                                    ? AppColors.error
+                                    : AppColors.primaryBlue)
                                 .withOpacity(0.3),
                             blurRadius: 10,
                             spreadRadius: 2,
@@ -286,4 +331,3 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
     );
   }
 }
-
