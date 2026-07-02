@@ -55,6 +55,7 @@ class DualertApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             routes: {
+              '/auth': (_) => const AuthWrapper(),
               '/signin': (_) => const SignInPage(),
               '/signup': (_) => const SignUpPage(),
               '/student': (_) =>
@@ -83,7 +84,23 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
-  bool _started = false;
+  // Track which UID we started the provider for, to handle sign-out/sign-in correctly.
+  String? _startedForUid;
+  bool _reloading = false;
+
+  /// Reloads the Firebase user token to get a fresh emailVerified status.
+  /// This is critical on web where emailVerified is cached from the initial token.
+  Future<void> _reloadUser(User user) async {
+    if (_reloading) return;
+    _reloading = true;
+    try {
+      await user.reload();
+    } catch (_) {
+      // ignore reload errors
+    } finally {
+      if (mounted) setState(() => _reloading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,25 +108,37 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final userProvider = context.read<UserProvider>();
 
     if (firebaseUser == null) {
-      if (_started) {
+      // User signed out — clean up provider
+      if (_startedForUid != null) {
+        _startedForUid = null;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) userProvider.stop();
         });
-        _started = false;
       }
       return const SignInPage();
     }
 
-    // Check email verification
+    // On web, emailVerified is cached in the JWT token. We must call reload()
+    // to get the latest status from Firebase servers.
     if (!firebaseUser.emailVerified) {
+      // Trigger a background reload so the stream refreshes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _reloadUser(firebaseUser);
+      });
       return const EmailVerificationScreen();
     }
 
-    if (!_started) {
+    // Start listening to the user's Firestore document if not already started
+    // for this specific user UID.
+    if (_startedForUid != firebaseUser.uid) {
+      if (_startedForUid != null) {
+        // Different user logged in — stop the old subscription first
+        userProvider.stop();
+      }
+      _startedForUid = firebaseUser.uid;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) userProvider.start(firebaseUser.uid);
       });
-      _started = true;
     }
 
     final appUser = context.watch<UserProvider>().user;

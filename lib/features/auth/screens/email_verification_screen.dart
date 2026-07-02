@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dualert/core/theme/app_colors.dart';
-import 'package:dualert/main.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
@@ -21,8 +20,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   void initState() {
     super.initState();
     _checkEmailVerification();
+    // Poll every 3 seconds — on verification, AuthWrapper will auto-navigate
     _timer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!_isVerified) {
+      if (!_isVerified && mounted) {
         _checkEmailVerification(showLoading: false);
       }
     });
@@ -35,19 +35,29 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _checkEmailVerification({bool showLoading = true}) async {
-    if (showLoading) setState(() => _isLoading = true);
+    if (showLoading && mounted) setState(() => _isLoading = true);
     
-    // Reload user to get the latest email verification status
-    await _auth.currentUser?.reload();
+    // Reload user from Firebase servers to get the latest emailVerified status.
+    // Critical on web: emailVerified is cached in the JWT and won't update
+    // automatically when the user clicks the verification link in another tab.
+    try {
+      await _auth.currentUser?.reload();
+    } catch (_) {
+      // ignore errors during reload
+    }
+    
+    final verified = _auth.currentUser?.emailVerified ?? false;
     
     if (mounted) {
       setState(() {
-        _isVerified = _auth.currentUser?.emailVerified ?? false;
+        _isVerified = verified;
         if (showLoading) _isLoading = false;
       });
     }
 
-    // If verified, AuthWrapper will automatically rebuild because of userChanges stream.
+    // If verified, the AuthWrapper is watching userChanges stream.
+    // After reload(), Firebase will emit a new event and AuthWrapper will
+    // automatically navigate to StudentHome or AdminHome.
   }
 
   Future<void> _resendVerificationEmail() async {
@@ -211,7 +221,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ] else
                   ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () async {
+                      // Force reload to emit a new userChanges event.
+                      // AuthWrapper will detect emailVerified=true and navigate automatically.
+                      try {
+                        await _auth.currentUser?.reload();
+                      } catch (_) {}
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       foregroundColor: Colors.white,

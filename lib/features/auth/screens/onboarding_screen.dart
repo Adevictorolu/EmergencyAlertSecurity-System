@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dualert/core/theme/app_colors.dart';
-import 'package:dualert/main.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -38,10 +37,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('seen_onboarding', true);
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthWrapper()),
-    );
+    // Navigate to AuthWrapper which handles auth state routing.
+    Navigator.pushReplacementNamed(context, '/auth');
   }
 
   @override
