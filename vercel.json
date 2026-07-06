@@ -1,11 +1,19 @@
 {
+  "buildCommand": "flutter build web --release",
   "outputDirectory": "build/web",
+  "installCommand": "flutter pub get",
+  "env": {
+    "FLUTTER_WEB": "true"
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(?!.*\\.(?:css|js|wasm|png|jpg|jpeg|gif|ico|svg|webp|ttf|woff|woff2|json|map)$)(.*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
-      "source": "/(.*\\.js|.*\\.css|.*\\.wasm)",
+      "source": "/(.*\\.@(js|css|wasm))",
       "headers": [
         {
           "key": "Cache-Control",
@@ -14,11 +22,20 @@
       ]
     },
     {
-      "source": "/(.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.ico|.*\\.svg|.*\\.webp)",
+      "source": "/(.*\\.@(png|jpg|jpeg|gif|ico|svg|webp|ttf|woff|woff2))",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     },
@@ -36,6 +53,10 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }

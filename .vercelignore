@@ -1,0 +1,23 @@
+# .vercelignore - Tell Vercel to skip certain files during deployment
+node_modules
+.git
+.gitignore
+.flutter
+.dart_tool
+.packages
+build/android
+build/ios
+build/linux
+build/macos
+build/windows
+test
+.env
+.env.local
+*.iml
+.idea
+.vscode
+coverage
+README.md
+VERCEL_DEPLOYMENT.md
+pubspec.lock
+*.md
