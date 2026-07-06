@@ -1,0 +1,16 @@
+{
+  "name": "dualert",
+  "version": "1.0.0",
+  "description": "Emergency Alert Security System for Dominion University",
+  "scripts": {
+    "build": "flutter build web --release",
+    "serve": "npx http-server build/web",
+    "deploy": "vercel"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "keywords": ["flutter", "emergency", "alert", "security"],
+  "author": "DUalert Team",
+  "license": "MIT"
+}
