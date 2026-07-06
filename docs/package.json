@@ -1,0 +1,10 @@
+{
+  "name": "dualert",
+  "version": "1.0.0",
+  "description": "DUalert Emergency Alert System",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "start": "echo 'Starting'"
+  }
+}
