@@ -143,19 +143,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
 
     if (userProviderState.user == null) {
-      if (userProviderState.isLoading) {
-        return const Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
-            ),
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
           ),
-        );
-      }
-
-      // If the profile document is temporarily unavailable, avoid bouncing users back to sign-in.
-      return const StudentHome();
+        ),
+      );
     }
 
     if (userProviderState.user!.role == 'admin') {
