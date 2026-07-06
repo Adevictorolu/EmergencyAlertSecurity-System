@@ -70,7 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        // AuthWrapper will handle the state change and show EmailVerificationScreen automatically.
+        Navigator.of(context).pushNamedAndRemoveUntil('/auth', (route) => false);
       }
     } catch (e) {
       if (mounted) {

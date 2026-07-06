@@ -104,8 +104,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<User?>();
+    final firebaseUser = context.watch<User?>() ?? FirebaseAuth.instance.currentUser;
     final userProvider = context.read<UserProvider>();
+    final userProviderState = context.watch<UserProvider>();
 
     if (firebaseUser == null) {
       // User signed out — clean up provider
@@ -141,19 +142,23 @@ class _AuthWrapperState extends State<AuthWrapper> {
       });
     }
 
-    final appUser = context.watch<UserProvider>().user;
-    if (appUser == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+    if (userProviderState.user == null) {
+      if (userProviderState.isLoading) {
+        return const Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+            ),
           ),
-        ),
-      );
+        );
+      }
+
+      // If the profile document is temporarily unavailable, avoid bouncing users back to sign-in.
+      return const StudentHome();
     }
 
-    if (appUser.role == 'admin') {
+    if (userProviderState.user!.role == 'admin') {
       return const AdminHome();
     }
     return const StudentHome();

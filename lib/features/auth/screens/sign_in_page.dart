@@ -31,10 +31,11 @@ class _SignInPageState extends State<SignInPage> {
     setState(() => loading = true);
     try {
       final auth = Provider.of<AuthService>(context, listen: false);
-      final uc = await auth.signIn(emailC.text.trim(), passC.text.trim());
+      await auth.signIn(emailC.text.trim(), passC.text.trim());
 
-      // AuthWrapper will automatically detect the auth state change
-      // and navigate to EmailVerificationScreen, StudentHome, or AdminHome.
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/auth', (route) => false);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
