@@ -22,6 +22,7 @@ import 'providers/theme_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
 
   final prefs = await SharedPreferences.getInstance();
   final bool seenOnboarding = prefs.getBool('seen_onboarding') ?? false;
@@ -84,9 +85,21 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
-  // Track which UID we started the provider for, to handle sign-out/sign-in correctly.
   String? _startedForUid;
   bool _reloading = false;
+  bool _hasResolvedInitialAuth = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _hasResolvedInitialAuth = true;
+        });
+      }
+    });
+  }
 
   /// Reloads the Firebase user token to get a fresh emailVerified status.
   /// This is critical on web where emailVerified is cached from the initial token.
@@ -108,8 +121,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final userProvider = context.read<UserProvider>();
     final userProviderState = context.watch<UserProvider>();
 
+    if (!_hasResolvedInitialAuth) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+          ),
+        ),
+      );
+    }
+
     if (firebaseUser == null) {
-      // User signed out — clean up provider
       if (_startedForUid != null) {
         _startedForUid = null;
         WidgetsBinding.instance.addPostFrameCallback((_) {

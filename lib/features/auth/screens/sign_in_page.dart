@@ -34,7 +34,7 @@ class _SignInPageState extends State<SignInPage> {
       await auth.signIn(emailC.text.trim(), passC.text.trim());
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/auth', (route) => false);
+        Navigator.of(context).pushReplacementNamed('/auth');
       }
     } catch (e) {
       if (mounted) {
